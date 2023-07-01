@@ -20,7 +20,32 @@
 
       imports = [bntr.flakeModules.nixpkgs devenv.flakeModule];
 
-      perSystem = {
+      perSystem = {pkgs, ...}: {
+        packages.default = pkgs.rustPlatform.buildRustPackage {
+          name = "cba-midi";
+          src = ./.;
+          cargoLock.lockFile = ./Cargo.lock;
+          nativeBuildInputs = with pkgs; [
+            autoPatchelfHook
+            mold
+            pkg-config
+          ];
+          PREFIX = placeholder "out";
+          buildType = "debug";
+          buildInputs = with pkgs; [
+            alsaLib
+            cairo
+            gdk-pixbuf
+            glib
+            graphene
+            gtk4
+            harfbuzz
+            pango
+          ];
+          postInstall = ''
+            install -D -t $out/share/cba-midi share/cba-midi/map.txt
+          '';
+        };
         nixpkgs.overlays = [fenix.overlays.default];
         devenv.shells.default = {pkgs, ...}: {
           languages.c.enable = true;

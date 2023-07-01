@@ -4,7 +4,7 @@ use std::{
     fmt::{self, Display},
     fs::{self, File},
     io::{BufRead, BufReader},
-    path::Path,
+    path::{Path, PathBuf},
     rc::Rc,
     time::Duration,
 };
@@ -66,7 +66,11 @@ type Note = u7;
 // }
 
 fn main() -> glib::ExitCode {
-    let state = Rc::new(State::new("src/map.txt").expect("Couldn't initialise State"));
+    let prefix = std::option_env!("PREFIX").unwrap_or("");
+    let mut map_path = PathBuf::from(prefix);
+    map_path.push("share/cba-midi/map.txt");
+    dbg!(&map_path);
+    let state = Rc::new(State::new(map_path).expect("Couldn't initialise State"));
     let app = Application::builder()
         .application_id("eu.muehml.CBAKeyboard")
         .build();
