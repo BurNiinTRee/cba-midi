@@ -1,0 +1,37 @@
+1
+
+q
+backslash 2
+a
+w
+z 3
+s
+e
+x 4
+d
+r
+c 5
+f
+t
+v 6
+g
+y
+b 7
+h
+u
+n 8
+j
+i
+m 9
+k
+o
+comma 0
+l
+p
+period minus
+semicolon
+bracketleft
+slash equal
+apostrophe
+bracketright
+BackSpace

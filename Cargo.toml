@@ -1,0 +1,13 @@
+[package]
+name = "cba-midi"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+glib = "0.17.10"
+midir = "0.9.1"
+midly = "0.5.3"
+
+[dependencies.gtk]
+package = "gtk4"
+version = "0.6.6"
