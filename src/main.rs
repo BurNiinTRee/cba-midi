@@ -22,49 +22,6 @@ use midly::{
 
 type Note = u7;
 
-// fn button_event(button: &gtk::Button, state: &Rc<State>) {
-//     let key = button.widget_name();
-
-//     match key_to_midi(key.as_str()) {
-//         Some(note) => {
-//             state.borrow_mut().note_on(note);
-//             let state = state.clone();
-//             timeout_add_local(Duration::from_millis(500), move || {
-//                 state.borrow_mut().note_off(28);
-//                 Continue(false)
-//             });
-//         }
-//         None => {}
-//     }
-// }
-
-// fn key_to_midi(key: &str) -> Option<u8> {
-//     Some(
-//         48 + match key {
-//             "backslash" | "1" => 28,
-//             "a" => 29,
-//             "w" => 30,
-//             "z" => 31,
-//             "s" => 32,
-//             "e" => 33,
-//             "x" => 34,
-//             "d" => 35,
-//             "r" => 36,
-//             "c" => 37,
-//             "f" => 38,
-//             "t" => 39,
-//             "v" => 40,
-//             "g" => 41,
-//             "y" => 42,
-//             "b" => 43,
-//             k => {
-//                 println!("Unmapped key: {}", k);
-//                 return None;
-//             }
-//         },
-//     )
-// }
-
 fn main() -> glib::ExitCode {
     let prefix = std::option_env!("PREFIX").unwrap_or("");
     let mut map_path = PathBuf::from(prefix);
@@ -240,7 +197,7 @@ impl StateInner {
     fn note_on(&mut self, note: Note) {
         println!("sending note_on {}", note);
         let event = LiveEvent::Midi {
-            channel: u4::new(1),
+            channel: u4::new(0),
             message: MidiMessage::NoteOn {
                 key: note,
                 vel: Note::new(64),
@@ -250,7 +207,7 @@ impl StateInner {
         let mut buf = Vec::new();
         event
             .write(&mut buf)
-            .expect("Coulnd't serialize midi message");
+            .expect("Couldn't serialize midi message");
         self.midi_connection
             .send(&buf)
             .expect("Couldn't send midi message");
@@ -258,17 +215,17 @@ impl StateInner {
     fn note_off(&mut self, note: Note) {
         println!("sending note_off {}", note);
         let event = LiveEvent::Midi {
-            channel: u4::new(1),
+            channel: u4::new(0),
             message: MidiMessage::NoteOff {
                 key: note,
-                vel: Note::new(64),
+                vel: Note::new(127),
             },
         };
 
         let mut buf = Vec::new();
         event
             .write(&mut buf)
-            .expect("Coulnd't serialize midi message");
+            .expect("Couldn't serialize midi message");
         self.midi_connection
             .send(&buf)
             .expect("Couldn't send midi message");
@@ -298,10 +255,10 @@ impl StateInner {
         let mut buf = Vec::new();
         event1
             .write(&mut buf)
-            .expect("Coulnd't serialize midi message");
+            .expect("Couldn't serialize midi message");
         event2
             .write(&mut buf)
-            .expect("Coulnd't serialize midi message");
+            .expect("Couldn't serialize midi message");
         self.midi_connection
             .send(&buf)
             .expect("Couldn't send midi message");
