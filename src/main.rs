@@ -1,16 +1,15 @@
 use std::{
     cell::RefCell,
     collections::{HashMap, HashSet},
-    fmt::{self, Display},
-    fs::{self, File},
+    fmt,
+    fs::File,
     io::{BufRead, BufReader},
     path::{Path, PathBuf},
     rc::Rc,
-    time::Duration,
 };
 
-use glib::{clone, timeout_add_local};
-use gtk::gdk::Key;
+use glib::clone;
+use gtk::{gdk::Key, Label};
 use gtk::{prelude::*, EventControllerFocus, EventControllerKey, Inhibit};
 use gtk::{Application, ApplicationWindow};
 use midir::{MidiOutput, MidiOutputConnection};
@@ -40,23 +39,15 @@ fn main() -> glib::ExitCode {
             .title("Chromatic Button Accordion Virtual Keyboard")
             .build();
 
-        let buttonboard = gtk::Box::new(gtk::Orientation::Vertical, 0);
-        let first_row = gtk::Box::new(gtk::Orientation::Horizontal, 0);
-
-        let button = gtk::Button::builder()
-            .can_focus(false)
-            .label("\\")
-            .name("backslash")
-            .build();
-        // button.connect_clicked(clone!(@strong state => move|b|
-        //     button_event(b, &state);
-        // ));
-
-        first_row.append(&button);
-
-        buttonboard.append(&first_row);
-
         let keyboard_listener = EventControllerKey::new();
+
+        let label = Label::new(None);
+        label.set_markup(r"This Application allows you to send Midi events using the keyboard.
+The layout mimmics that of a <b>Type C Chromatic Button Accordion</b>, with the <b>Note C being mapped to the Key C</b>");
+        label.set_wrap(true);
+        label.set_wrap_mode(gtk::pango::WrapMode::Word);
+
+        window.set_child(Some(&label));
 
         keyboard_listener.connect_key_pressed(
             clone!(@strong state => move |_controller, key, _keycode, modifiers| {
@@ -87,8 +78,6 @@ fn main() -> glib::ExitCode {
         window.add_controller(keyboard_listener);
         window.add_controller(focus_listener);
 
-        window.set_child(Some(&buttonboard));
-
         window.show();
     });
 
@@ -98,10 +87,6 @@ fn main() -> glib::ExitCode {
 struct State(RefCell<StateInner>);
 
 impl State {
-    pub fn borrow(&self) -> std::cell::Ref<'_, StateInner> {
-        self.0.borrow()
-    }
-
     pub fn borrow_mut(&self) -> std::cell::RefMut<'_, StateInner> {
         self.0.borrow_mut()
     }
@@ -118,7 +103,6 @@ struct StateInner {
     held_keys: HashSet<Key>,
     held_notes: HashMap<Note, usize>,
     key_to_note: HashMap<Key, Note>,
-    note_to_keys: HashMap<Note, HashSet<Key>>,
 }
 
 impl StateInner {
@@ -127,26 +111,24 @@ impl StateInner {
         let port = &output.ports()[0];
         let midi_connection = output.connect(port, "cba")?;
 
-        let (key_to_note, note_to_keys) = Self::read_map_file(map_file_path)?;
+        let key_to_note = Self::read_map_file(map_file_path)?;
 
         Ok(Self {
             midi_connection,
             held_keys: HashSet::new(),
             held_notes: HashMap::new(),
             key_to_note,
-            note_to_keys,
         })
     }
 
     fn read_map_file<P: AsRef<Path>>(
         map_file_path: P,
-    ) -> Result<(HashMap<Key, Note>, HashMap<Note, HashSet<Key>>), Box<dyn std::error::Error>> {
+    ) -> Result<HashMap<Key, Note>, Box<dyn std::error::Error>> {
         let file = BufReader::new(File::open(map_file_path)?);
         let mut key_to_note = HashMap::new();
-        let mut note_to_keys = HashMap::new();
         for (i, line) in file.lines().enumerate() {
             let line = line?;
-            let note = Note::new(i as u8 + 41);
+            let note = Note::new(i as u8 + 36);
             let keys: Result<HashSet<Key>, KeyParseError> = line
                 .split_whitespace()
                 .map(|name| Key::from_name(name).ok_or_else(|| KeyParseError(name.to_string())))
@@ -156,10 +138,8 @@ impl StateInner {
             for key in &keys {
                 key_to_note.insert(*key, note);
             }
-
-            note_to_keys.insert(note, keys);
         }
-        Ok((key_to_note, note_to_keys))
+        Ok(key_to_note)
     }
 
     fn press_key(&mut self, key_name: &str) -> bool {

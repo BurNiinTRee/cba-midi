@@ -27,11 +27,20 @@
           cargoLock.lockFile = ./Cargo.lock;
           nativeBuildInputs = with pkgs; [
             autoPatchelfHook
+            copyDesktopItems
             mold
             pkg-config
           ];
           PREFIX = placeholder "out";
-          buildType = "debug";
+          desktopItems = [
+            (
+              pkgs.makeDesktopItem {
+                name = "cba-midi";
+                desktopName = "CBA Keyboard";
+                exec = "cba-midi";
+              }
+            )
+          ];
           buildInputs = with pkgs; [
             alsaLib
             cairo
