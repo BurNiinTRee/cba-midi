@@ -43,7 +43,7 @@ fn main() -> glib::ExitCode {
 
         let label = Label::new(None);
         label.set_markup(r"This Application allows you to send Midi events using the keyboard.
-The layout mimmics that of a <b>Type C Chromatic Button Accordion</b>, with the <b>Note C being mapped to the Key C</b>");
+The layout mimmics that of a <b>Type C <a href='https://en.wikipedia.org/wiki/Chromatic_button_accordion'>Chromatic Button Accordion</a></b>, with the <b>Note C being mapped to the Key C</b>");
         label.set_wrap(true);
         label.set_wrap_mode(gtk::pango::WrapMode::Word);
 
