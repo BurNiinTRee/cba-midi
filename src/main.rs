@@ -9,7 +9,11 @@ use std::{
 };
 
 use glib::clone;
-use gtk::{gdk::Key, Label};
+use gtk::{
+    gdk::Key,
+    gio::{Menu, SimpleAction},
+    AboutDialog, HeaderBar, Label, MenuButton,
+};
 use gtk::{prelude::*, EventControllerFocus, EventControllerKey, Inhibit};
 use gtk::{Application, ApplicationWindow};
 use midir::{MidiOutput, MidiOutputConnection};
@@ -34,8 +38,8 @@ fn main() -> glib::ExitCode {
     app.connect_activate(move |app| {
         let window = ApplicationWindow::builder()
             .application(app)
-            .default_width(320)
-            .default_height(240)
+            .default_width(640)
+            .default_height(120)
             .title("Chromatic Button Accordion Virtual Keyboard")
             .build();
 
@@ -43,11 +47,38 @@ fn main() -> glib::ExitCode {
 
         let label = Label::new(None);
         label.set_markup(r"This Application allows you to send Midi events using the keyboard.
-The layout mimmics that of a <b>Type C <a href='https://en.wikipedia.org/wiki/Chromatic_button_accordion'>Chromatic Button Accordion</a></b>, with the <b>Note C being mapped to the Key C</b>");
+The layout mimmics that of a <b>Type C <a href='https://en.wikipedia.org/wiki/Chromatic_button_accordion'>Chromatic Button Accordion</a></b>, with the <b>Note C being mapped to the Key C</b>.
+Press <b>Spacebar</b> to turn of all notes.");
         label.set_wrap(true);
+        label.set_focusable(false);
         label.set_wrap_mode(gtk::pango::WrapMode::Word);
 
         window.set_child(Some(&label));
+
+        let about = AboutDialog::builder()
+            .authors(["Lars Mühmel <lars@muehml.eu>"])
+            .license_type(gtk::License::Gpl30)
+            .copyright("© 2023 Lars Mühmel")
+            .website("https://github.com/BurNiinTRee/cba-midi")
+            .program_name("CBA Midi")
+            .comments("This Application allows you to send Midi events using the keyboard")
+            .build();
+
+        let action_about = SimpleAction::new("about", None);
+        action_about.connect_activate(move |_, _| about.show());
+        app.add_action(&action_about);
+
+        let headerbar = HeaderBar::new();
+
+        // let menu = Menu::new();
+        // menu.append(Some("About"), Some("app.about"));
+        // headerbar.pack_end(&MenuButton::builder().can_focus(false).icon_name("open-menu-symbolic").menu_model(&menu).build());
+        let about_button = gtk::Button::from_icon_name("help-about-symbolic");
+        about_button.set_action_name(Some("app.about"));
+        about_button.set_focusable(false);
+        headerbar.pack_end(&about_button);
+
+        window.set_titlebar(Some(&headerbar));
 
         keyboard_listener.connect_key_pressed(
             clone!(@strong state => move |_controller, key, _keycode, modifiers| {
