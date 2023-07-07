@@ -8,11 +8,11 @@ use std::{
     rc::Rc,
 };
 
-use glib::clone;
 use gtk::{
     gdk::Key,
-    gio::{Menu, SimpleAction},
-    AboutDialog, HeaderBar, Label, MenuButton,
+    gio::SimpleAction,
+    glib::{self, clone},
+    AboutDialog, HeaderBar, Label,
 };
 use gtk::{prelude::*, EventControllerFocus, EventControllerKey, Inhibit};
 use gtk::{Application, ApplicationWindow};
