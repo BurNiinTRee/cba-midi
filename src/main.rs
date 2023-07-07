@@ -249,14 +249,14 @@ impl StateInner {
         self.held_notes.clear();
 
         let event1 = LiveEvent::Midi {
-            channel: u4::new(1),
+            channel: u4::new(0),
             message: MidiMessage::Controller {
                 controller: Note::new(123),
                 value: Note::new(127),
             },
         };
         let event2 = LiveEvent::Midi {
-            channel: u4::new(1),
+            channel: u4::new(0),
             message: MidiMessage::Controller {
                 controller: Note::new(123),
                 value: Note::new(0),
