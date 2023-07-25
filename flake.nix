@@ -1,6 +1,6 @@
 {
   inputs = {
-    bntr.url = "github:BurNiinTRee/nix-sources";
+    bntr.url = "github:BurNiinTRee/nix-sources?dir=inner";
     devenv.url = "github:cachix/devenv";
     fenix.url = "github:nix-community/fenix";
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -15,45 +15,17 @@
     nixpkgs,
     ...
   }:
-    flake-parts.lib.mkFlake {inherit inputs;} ({...}: {
+    flake-parts.lib.mkFlake {inherit inputs;} ({lib, ...}: {
       systems = ["x86_64-linux"];
 
-      imports = [bntr.flakeModules.nixpkgs devenv.flakeModule];
+      imports = [
+        bntr.modules.flake.nixpkgs
+        devenv.flakeModule
+      ];
 
-      perSystem = {pkgs, ...}: {
-        packages.default = pkgs.rustPlatform.buildRustPackage {
-          name = "cba-midi";
-          src = ./.;
-          cargoLock.lockFile = ./Cargo.lock;
-          nativeBuildInputs = with pkgs; [
-            autoPatchelfHook
-            copyDesktopItems
-            mold
-            pkg-config
-          ];
-          PREFIX = placeholder "out";
-          desktopItems = [
-            (
-              pkgs.makeDesktopItem {
-                name = "cba-midi";
-                desktopName = "CBA Keyboard";
-                exec = "cba-midi";
-              }
-            )
-          ];
-          buildInputs = with pkgs; [
-            alsaLib
-            cairo
-            gdk-pixbuf
-            glib
-            graphene
-            gtk4
-            harfbuzz
-            pango
-          ];
-          postInstall = ''
-            install -D -t $out/share/cba-midi share/cba-midi/map.txt
-          '';
+      perSystem = {config, pkgs, ...}: {
+        packages = {
+          default = pkgs.callPackage ./nix/package.nix {};
         };
         nixpkgs.overlays = [fenix.overlays.default];
         devenv.shells.default = {pkgs, ...}: {
