@@ -86,17 +86,13 @@ Press <b>Spacebar</b> to turn of all notes.");
                     state.borrow_mut().midi_panic();
                     return Inhibit(true)
                 }
-                if !modifiers.is_empty() {
-                    return Inhibit(false);
-                }
+                let key = key.to_lower();
                 Inhibit(state.borrow_mut().press_key(key.name().unwrap().as_str()))
             }),
         );
         keyboard_listener.connect_key_released(
             clone!(@strong state => move |_controller, key, _keycode, modifiers| {
-                if !modifiers.is_empty() {
-                    return;
-                }
+                let key = key.to_lower();
                 state.borrow_mut().release_key(key.name().unwrap().as_str());
             }),
         );
@@ -159,7 +155,7 @@ impl StateInner {
         let mut key_to_note = HashMap::new();
         for (i, line) in file.lines().enumerate() {
             let line = line?;
-            let note = Note::new(i as u8 + 36);
+            let note = Note::new(i as u8 + 48);
             let keys: Result<HashSet<Key>, KeyParseError> = line
                 .split_whitespace()
                 .map(|name| Key::from_name(name).ok_or_else(|| KeyParseError(name.to_string())))
@@ -211,7 +207,7 @@ impl StateInner {
             channel: u4::new(0),
             message: MidiMessage::NoteOn {
                 key: note,
-                vel: Note::new(64),
+                vel: Note::new(100),
             },
         };
 
