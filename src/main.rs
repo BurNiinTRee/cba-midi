@@ -50,10 +50,10 @@ fn main() -> glib::ExitCode {
 The layout mimmics that of a <b>Type C <a href='https://en.wikipedia.org/wiki/Chromatic_button_accordion'>Chromatic Button Accordion</a></b>, with the <b>Note C being mapped to the Key C</b>.
 Press <b>Spacebar</b> to turn of all notes.");
         label.set_wrap(true);
-        label.set_focusable(false);
         label.set_wrap_mode(gtk::pango::WrapMode::Word);
 
         window.set_child(Some(&label));
+        window.set_can_focus(false);
 
         let about = AboutDialog::builder()
             .authors(["Lars Mühmel <lars@muehml.eu>"])
@@ -72,7 +72,6 @@ Press <b>Spacebar</b> to turn of all notes.");
 
         let about_button = gtk::Button::from_icon_name("help-about-symbolic");
         about_button.set_action_name(Some("app.about"));
-        about_button.set_focusable(false);
         headerbar.pack_end(&about_button);
 
 
