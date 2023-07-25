@@ -1,5 +1,5 @@
-1
-
+Shift_L 1
+Escape
 q
 backslash 2
 a
@@ -34,4 +34,4 @@ bracketleft
 slash equal
 apostrophe
 bracketright
-BackSpace
+Shift_R BackSpace

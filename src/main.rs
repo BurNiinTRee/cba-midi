@@ -12,7 +12,7 @@ use gtk::{
     gdk::Key,
     gio::SimpleAction,
     glib::{self, clone},
-    AboutDialog, HeaderBar, Label,
+    AboutDialog, DropDown, HeaderBar, Label, StringList,
 };
 use gtk::{prelude::*, EventControllerFocus, EventControllerKey, Inhibit};
 use gtk::{Application, ApplicationWindow};
@@ -78,10 +78,21 @@ Press <b>Spacebar</b> to turn of all notes.");
         about_button.set_focusable(false);
         headerbar.pack_end(&about_button);
 
+
+        let numbers = ["C0/C,,", "C1/C,", "C2/C", "C3/c", "C4/c‘", "C5/c‘‘", "C6c/c‘‘‘‘", "C7/c‘‘‘‘‘", "C8/c‘‘‘‘‘‘"];
+        let octave_list_model = StringList::new(&numbers);
+        let octave_switcher = DropDown::builder().model(&octave_list_model).selected(state.borrow_mut().octave.into()).build();
+
+        octave_switcher.connect_selected_notify(clone!(@strong state => move |dropdown| {
+            state.borrow_mut().octave = dropdown.selected() as u8;
+        }));
+
+        headerbar.pack_start(&octave_switcher);
+
         window.set_titlebar(Some(&headerbar));
 
         keyboard_listener.connect_key_pressed(
-            clone!(@strong state => move |_controller, key, _keycode, modifiers| {
+            clone!(@strong state => move |_controller, key, _keycode, _modifiers| {
                 if key == Key::space {
                     state.borrow_mut().midi_panic();
                     return Inhibit(true)
@@ -91,7 +102,7 @@ Press <b>Spacebar</b> to turn of all notes.");
             }),
         );
         keyboard_listener.connect_key_released(
-            clone!(@strong state => move |_controller, key, _keycode, modifiers| {
+            clone!(@strong state => move |_controller, key, _keycode, _modifiers| {
                 let key = key.to_lower();
                 state.borrow_mut().release_key(key.name().unwrap().as_str());
             }),
@@ -127,6 +138,7 @@ impl State {
 
 struct StateInner {
     midi_connection: MidiOutputConnection,
+    octave: u8,
     held_keys: HashSet<Key>,
     held_notes: HashMap<Note, usize>,
     key_to_note: HashMap<Key, Note>,
@@ -145,6 +157,7 @@ impl StateInner {
             held_keys: HashSet::new(),
             held_notes: HashMap::new(),
             key_to_note,
+            octave: 4,
         })
     }
 
@@ -155,7 +168,7 @@ impl StateInner {
         let mut key_to_note = HashMap::new();
         for (i, line) in file.lines().enumerate() {
             let line = line?;
-            let note = Note::new(i as u8 + 48);
+            let note = Note::new(i as u8);
             let keys: Result<HashSet<Key>, KeyParseError> = line
                 .split_whitespace()
                 .map(|name| Key::from_name(name).ok_or_else(|| KeyParseError(name.to_string())))
@@ -175,6 +188,7 @@ impl StateInner {
             println!("Unmapped Key: {}", key_name);
             return true;
         };
+        let note = note + u7::new(self.octave * 12);
         if self.held_keys.contains(&key) {
             return false;
         }
@@ -194,6 +208,7 @@ impl StateInner {
         let Some(&note) = self.key_to_note.get(&key) else {
             return;
         };
+        let note = note + u7::new(self.octave * 12);
         let count = self.held_notes.entry(note).or_insert(1);
         *count -= 1;
         if *count == 0 {
