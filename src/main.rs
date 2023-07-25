@@ -70,9 +70,6 @@ Press <b>Spacebar</b> to turn of all notes.");
 
         let headerbar = HeaderBar::new();
 
-        // let menu = Menu::new();
-        // menu.append(Some("About"), Some("app.about"));
-        // headerbar.pack_end(&MenuButton::builder().can_focus(false).icon_name("open-menu-symbolic").menu_model(&menu).build());
         let about_button = gtk::Button::from_icon_name("help-about-symbolic");
         about_button.set_action_name(Some("app.about"));
         about_button.set_focusable(false);
@@ -254,7 +251,7 @@ impl StateInner {
     }
 
     fn midi_panic(&mut self) {
-        println!("sedning All Notes Off");
+        println!("sending All Notes Off");
 
         self.held_keys.clear();
         self.held_notes.clear();
