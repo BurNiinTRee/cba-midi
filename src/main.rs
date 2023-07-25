@@ -76,7 +76,7 @@ Press <b>Spacebar</b> to turn of all notes.");
         headerbar.pack_end(&about_button);
 
 
-        let numbers = ["C0/C,,", "C1/C,", "C2/C", "C3/c", "C4/c‘", "C5/c‘‘", "C6c/c‘‘‘‘", "C7/c‘‘‘‘‘", "C8/c‘‘‘‘‘‘"];
+        let numbers = ["C0/C,,", "C1/C,", "C2/C", "C3/c", "C4/c‘", "C5/c‘‘", "C6c/c‘‘‘", "C7/c‘‘‘‘", "C8/c‘‘‘‘‘"];
         let octave_list_model = StringList::new(&numbers);
         let octave_switcher = DropDown::builder().model(&octave_list_model).selected(state.borrow_mut().octave.into()).build();
 
