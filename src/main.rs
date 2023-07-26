@@ -17,7 +17,7 @@ use gtk::{
 };
 use gtk::{prelude::*, EventControllerFocus, EventControllerKey, Inhibit};
 use gtk::{Application, ApplicationWindow};
-use midir::{os::unix::VirtualOutput, MidiOutput, MidiOutputConnection};
+use midir::{MidiOutput, MidiOutputConnection};
 use midly::{
     live::LiveEvent,
     num::{u4, u7},
@@ -168,7 +168,7 @@ fn build_connection_window(state: Rc<State>) -> Result<Window, Box<dyn std::erro
                 None => {
                     #[cfg(not(windows))]
                     {
-                        out.create_virtual("cba virtual").expect("Couldn't create a virtual output")
+                        midir::os::unix::VirtualOutput::create_virtual(out, "cba virtual").expect("Couldn't create a virtual output")
                     }
                     #[cfg(windows)]
                     {
