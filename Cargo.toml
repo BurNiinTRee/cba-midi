@@ -4,8 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-midir = "0.9.1"
 midly = "0.5.3"
+
+[dependencies.midir]
+version = "0.9.1"
+features = ["jack"]
 
 [dependencies.gtk]
 package = "gtk4"

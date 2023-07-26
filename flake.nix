@@ -36,6 +36,8 @@
             pkgs.mold
             # MIDI
             pkgs.alsaLib
+            pkgs.pipewire.jack
+            pkgs.libjack2
             # GTK4
             pkgs.cairo
             pkgs.gdk-pixbuf
