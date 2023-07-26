@@ -1,5 +1,5 @@
 use std::{
-    cell::RefCell,
+    cell::{Cell, RefCell},
     collections::{HashMap, HashSet},
     fmt,
     fs::File,
@@ -9,14 +9,15 @@ use std::{
 };
 
 use gtk::{
+    ffi::GTK_INVALID_LIST_POSITION,
     gdk::Key,
     gio::SimpleAction,
     glib::{self, clone},
-    AboutDialog, DropDown, HeaderBar, Label, StringList,
+    AboutDialog, DropDown, HeaderBar, Label, StringList, Window,
 };
 use gtk::{prelude::*, EventControllerFocus, EventControllerKey, Inhibit};
 use gtk::{Application, ApplicationWindow};
-use midir::{MidiOutput, MidiOutputConnection};
+use midir::{os::unix::VirtualOutput, MidiOutput, MidiOutputConnection};
 use midly::{
     live::LiveEvent,
     num::{u4, u7},
@@ -45,6 +46,11 @@ fn main() -> glib::ExitCode {
 
         let keyboard_listener = EventControllerKey::new();
 
+        let container = gtk::Box::builder()
+            .margin_start(20)
+            .orientation(gtk::Orientation::Vertical)
+            .build();
+
         let label = Label::new(None);
         label.set_markup(r"This Application allows you to send Midi events using the keyboard.
 The layout mimmics that of a <b>Type C <a href='https://en.wikipedia.org/wiki/Chromatic_button_accordion'>Chromatic Button Accordion</a></b>, with the <b>Note C being mapped to the Key C</b>.
@@ -52,7 +58,10 @@ Press <b>Spacebar</b> to turn of all notes.");
         label.set_wrap(true);
         label.set_wrap_mode(gtk::pango::WrapMode::Word);
 
-        window.set_child(Some(&label));
+        container.append(&label);
+
+
+        window.set_child(Some(&container));
         window.set_can_focus(false);
 
         let about = AboutDialog::builder()
@@ -112,10 +121,68 @@ Press <b>Spacebar</b> to turn of all notes.");
         window.add_controller(keyboard_listener);
         window.add_controller(focus_listener);
 
+
         window.show();
+        build_connection_window(state.clone()).expect("Couldn't create connection window").show();
     });
 
     app.run()
+}
+
+fn build_connection_window(state: Rc<State>) -> Result<Window, Box<dyn std::error::Error>> {
+    let window = Window::builder()
+        .title("Select Midi Output")
+        .modal(true)
+        .build();
+
+    let output = MidiOutput::new("Chromatic Keyboard")?;
+
+    let available_ports = output.ports();
+
+    let mut ports_with_names: Vec<_> = available_ports
+        .into_iter()
+        .filter_map(|port| match output.port_name(&port) {
+            Ok(name) => Some((Some(port), name)),
+            Err(_) => None,
+        })
+        .collect();
+
+    #[cfg(not(windows))]
+    ports_with_names.push((None, String::from("Virtual Output")));
+
+    let names: Vec<&str> = ports_with_names
+        .iter()
+        .map(|(_, name)| name.as_str())
+        .collect();
+
+    let output = Cell::new(Some(output));
+    let names = StringList::new(&names);
+    let dropdown = DropDown::builder().model(&names).build();
+    dropdown.set_selected(GTK_INVALID_LIST_POSITION);
+    dropdown.connect_selected_notify(clone!(@strong window => move |dropdown| {
+        if let Some(out) = output.replace(None).take() {
+            let idx = dropdown.selected();
+            let port = &ports_with_names[idx as usize].0;
+            let connection = match port {
+                Some(port) => out.connect(port, "cba").expect("Connection failed"),
+                None => {
+                    #[cfg(not(windows))]
+                    {
+                        out.create_virtual("cba virtual").expect("Couldn't create a virtual output")
+                    }
+                    #[cfg(windows)]
+                    {
+                        unreachable!("port should never be None on windows")
+                    }
+                }
+            };
+            state.borrow_mut().midi_port = Some(connection);
+            window.close();
+        }
+    }));
+
+    window.set_child(Some(&dropdown));
+    Ok(window)
 }
 
 struct State(RefCell<StateInner>);
@@ -133,7 +200,7 @@ impl State {
 }
 
 struct StateInner {
-    midi_connection: MidiOutputConnection,
+    midi_port: Option<MidiOutputConnection>,
     octave: u8,
     held_keys: HashSet<Key>,
     held_notes: HashMap<Note, usize>,
@@ -142,14 +209,10 @@ struct StateInner {
 
 impl StateInner {
     fn new<P: AsRef<Path>>(map_file_path: P) -> Result<Self, Box<dyn std::error::Error>> {
-        let output = MidiOutput::new("Chromatic Keyboard")?;
-        let port = &output.ports()[0];
-        let midi_connection = output.connect(port, "cba")?;
-
         let key_to_note = Self::read_map_file(map_file_path)?;
 
         Ok(Self {
-            midi_connection,
+            midi_port: None,
             held_keys: HashSet::new(),
             held_notes: HashMap::new(),
             key_to_note,
@@ -213,73 +276,74 @@ impl StateInner {
     }
 
     fn note_on(&mut self, note: Note) {
-        println!("sending note_on {}", note);
-        let event = LiveEvent::Midi {
-            channel: u4::new(0),
-            message: MidiMessage::NoteOn {
-                key: note,
-                vel: Note::new(100),
-            },
-        };
+        if let Some(ref mut conn) = self.midi_port {
+            println!("sending note_on {}", note);
+            let event = LiveEvent::Midi {
+                channel: u4::new(0),
+                message: MidiMessage::NoteOn {
+                    key: note,
+                    vel: Note::new(100),
+                },
+            };
 
-        let mut buf = Vec::new();
-        event
-            .write(&mut buf)
-            .expect("Couldn't serialize midi message");
-        self.midi_connection
-            .send(&buf)
-            .expect("Couldn't send midi message");
+            let mut buf = Vec::new();
+            event
+                .write(&mut buf)
+                .expect("Couldn't serialize midi message");
+
+            conn.send(&buf).expect("Couldn't send midi message");
+        }
     }
     fn note_off(&mut self, note: Note) {
-        println!("sending note_off {}", note);
-        let event = LiveEvent::Midi {
-            channel: u4::new(0),
-            message: MidiMessage::NoteOff {
-                key: note,
-                vel: Note::new(127),
-            },
-        };
+        if let Some(ref mut conn) = self.midi_port {
+            println!("sending note_off {}", note);
+            let event = LiveEvent::Midi {
+                channel: u4::new(0),
+                message: MidiMessage::NoteOff {
+                    key: note,
+                    vel: Note::new(127),
+                },
+            };
 
-        let mut buf = Vec::new();
-        event
-            .write(&mut buf)
-            .expect("Couldn't serialize midi message");
-        self.midi_connection
-            .send(&buf)
-            .expect("Couldn't send midi message");
+            let mut buf = Vec::new();
+            event
+                .write(&mut buf)
+                .expect("Couldn't serialize midi message");
+            conn.send(&buf).expect("Couldn't send midi message");
+        }
     }
 
     fn midi_panic(&mut self) {
-        println!("sending All Notes Off");
+        if let Some(ref mut conn) = self.midi_port {
+            println!("sending All Notes Off");
 
-        self.held_keys.clear();
-        self.held_notes.clear();
+            self.held_keys.clear();
+            self.held_notes.clear();
 
-        let event1 = LiveEvent::Midi {
-            channel: u4::new(0),
-            message: MidiMessage::Controller {
-                controller: Note::new(123),
-                value: Note::new(127),
-            },
-        };
-        let event2 = LiveEvent::Midi {
-            channel: u4::new(0),
-            message: MidiMessage::Controller {
-                controller: Note::new(123),
-                value: Note::new(0),
-            },
-        };
+            let event1 = LiveEvent::Midi {
+                channel: u4::new(0),
+                message: MidiMessage::Controller {
+                    controller: Note::new(123),
+                    value: Note::new(127),
+                },
+            };
+            let event2 = LiveEvent::Midi {
+                channel: u4::new(0),
+                message: MidiMessage::Controller {
+                    controller: Note::new(123),
+                    value: Note::new(0),
+                },
+            };
 
-        let mut buf = Vec::new();
-        event1
-            .write(&mut buf)
-            .expect("Couldn't serialize midi message");
-        event2
-            .write(&mut buf)
-            .expect("Couldn't serialize midi message");
-        self.midi_connection
-            .send(&buf)
-            .expect("Couldn't send midi message");
+            let mut buf = Vec::new();
+            event1
+                .write(&mut buf)
+                .expect("Couldn't serialize midi message");
+            event2
+                .write(&mut buf)
+                .expect("Couldn't serialize midi message");
+            conn.send(&buf).expect("Couldn't send midi message");
+        }
     }
 }
 
