@@ -8,6 +8,7 @@
   graphene,
   gtk4,
   harfbuzz,
+  libjack2,
   makeDesktopItem,
   mold,
   pango,
@@ -42,6 +43,7 @@ rustPlatform.buildRustPackage {
     graphene
     gtk4
     harfbuzz
+    libjack2
     pango
   ];
   postInstall = ''
