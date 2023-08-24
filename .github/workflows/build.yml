@@ -15,7 +15,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo dnf install cargo rust-std-static-x86_64-pc-windows-gnu mingw64-gtk4 zip
+          sudo dnf install -y cargo rust-std-static-x86_64-pc-windows-gnu mingw64-gtk4 zip
 
       - name: Setup GTK4 env vars
         run: |
