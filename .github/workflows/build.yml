@@ -13,14 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          target: x86_64-pc-windows-msvc
-
       - name: Install dependencies
         run: |
           sudo dnf install cargo rust-std-static-x86_64-pc-windows-gnu mingw64-gtk4 zip
