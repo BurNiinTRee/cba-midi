@@ -1,0 +1,62 @@
+name: Compile CBA-Midi
+on:
+  release:
+    types: [created]
+  push:
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    container: fedora-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: x86_64-pc-windows-msvc
+
+      - name: Install dependencies
+        run: |
+          sudo dnf install cargo rust-std-static-x86_64-pc-windows-gnu mingw64-gtk4 zip
+
+      - name: Setup GTK4 env vars
+        run: |
+          Add-Content $env:GITHUB_PATH "C:\gtk-build\gtk\x64\release\bin"
+          $env:LIB = "C:\gtk-build\gtk\x64\release\lib;" + $env:LIB
+          $env:INCLUDE = "C:\gtk-build\gtk\x64\release\include;C:\gtk-build\gtk\x64\release\include\cairo;C:\gtk-build\gtk\x64\release\include\glib-2.0;C:\gtk-build\gtk\x64\release\include\gobject-introspection-1.0;C:\gtk-build\gtk\x64\release\lib\glib-2.0\include;" + $env:INCLUDE
+          Add-Content $env:GITHUB_ENV LIB=$env:LIB
+          Add-Content $env:GITHUB_ENV INCLUDE=$env:INCLUDE
+          cat $env:INCLUDE
+
+      - name: Cache target
+        uses: actions/cache@v3
+        with:
+          key: "target"
+          path: target/
+
+      - name: Build CBA-midi
+        run: |
+          env PKG_CONFIG=mingw64-pkg-config cargo build --release --target=x86_64-pc-windows-gnu
+
+      - name: Create Artifact
+        run: |
+          install -Dt release ./target/x86_64-pc-windows-gnu/release/cba-midi.exe /usr/x86_64-w64-mingw32/sys-root/mingw/bin/{iconv,libbz2-1,libcairo-2,libcairo-gobject-2,libcairo-script-interpreter-2,libepoxy-0,libexpat-1,libffi-8,libfontconfig-1,libfreetype-6,libfribidi-0,libgcc_s_seh-1,libgdk_pixbuf-2.0-0,libgio-2.0-0,libglib-2.0-0,libgmodule-2.0-0,libgobject-2.0-0,libgraphene-1.0-0,libgtk-4-1,libharfbuzz-0,libintl-8,libjpeg-62,libpango-1.0-0,libpangocairo-1.0-0,libpangoft2-1.0-0,libpangowin32-1.0-0,libpcre2-8-0,libpixman-1-0.dll,libpng16-16,libssp-0,libtiff-5,libwinpthread-1,zlib1}.dll
+          install -Dt release/share/cba-midi share/cba-midi/map.txt
+          
+          zip release.zip release/*
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-build
+          path: release.zip
+      
+          
+
+      
