@@ -1,8 +1,10 @@
-project('cba-midi',
-        'rust',
-        version: '0.1.0',
-        license: 'GPL-3.0',
-        meson_version: '>= 0.59')
+project(
+  'cba-midi',
+  'rust',
+  version: '0.1.0',
+  license: 'GPL-3.0',
+  meson_version: '>= 0.59'
+)
 
 
 gnome = import('gnome')
@@ -20,6 +22,10 @@ prefix = get_option('prefix')
 bindir = prefix / get_option('bindir')
 datadir = prefix / get_option('datadir')
 pkgdatadir = datadir / meson.project_name()
+
+meson.add_dist_script(
+  'build-aux/dist-vendor.sh'
+)
 
 
 

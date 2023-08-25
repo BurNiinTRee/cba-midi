@@ -1,0 +1,41 @@
+{
+  "app-id": "eu.muehml.cba-midi",
+  "runtime": "org.gnome.Platform",
+  "runtime-version": "44",
+  "sdk": "org.gnome.Sdk",
+  "sdk-extensions": [
+    "org.freedesktop.Sdk.Extension.rust-stable"
+  ],
+  "command": "cba-midi",
+  "finish-args": [
+    "--socket=wayland",
+    "--filesystem=xdg-run/pipewire-0"
+  ],
+  "build-options": {
+    "append-path": "/usr/lib/sdk/rust-stable/bin"
+  },
+  "modules": [
+    "shared-modules/linux-audio/jack2.json",
+    {
+      "name": "blueprint-compiler",
+      "buildsystem": "meson",
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://gitlab.gnome.org/jwestman/blueprint-compiler",
+          "tag": "v0.10.0"
+        }
+      ]
+    },
+    {
+      "name": "CBA-Midi",
+      "buildsystem": "meson",
+      "sources": [
+        {
+          "type": "archive",
+          "path": "../build/meson-dist/cba-midi-0.1.0.tar.xz"
+        }
+      ]
+    }
+  ]
+}

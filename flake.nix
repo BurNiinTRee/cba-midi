@@ -32,16 +32,19 @@
         };
         devShells.default = pkgs.mkShell {
           inputsFrom = [config.packages.default];
-          packages = [pkgs.rust-analyzer];
+          packages = [
+            pkgs.flatpak-builder
+            pkgs.rust-analyzer
+          ];
           LD_LIBRARY_PATH = lib.makeLibraryPath (with pkgs; [
-            glib
-            gtk4
-            pipewire.jack 
-            pango
             cairo
-            harfbuzz
             gdk-pixbuf
+            glib
             graphene
+            gtk4
+            harfbuzz
+            pango
+            pipewire.jack
           ]);
         };
         nixpkgs.overlays = [fenix.overlays.default];
