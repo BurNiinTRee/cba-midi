@@ -11,9 +11,9 @@ use std::{
 use gtk::{
     ffi::GTK_INVALID_LIST_POSITION,
     gdk::Key,
-    gio::SimpleAction,
+    gio::{self, SimpleAction},
     glib::{self, clone},
-    AboutDialog, DropDown, HeaderBar, Label, StringList, Window,
+    AboutDialog, DropDown, HeaderBar, Label, StringList, Window, Builder, MenuButton,
 };
 use gtk::{prelude::*, EventControllerFocus, EventControllerKey, Inhibit};
 use gtk::{Application, ApplicationWindow};
@@ -23,122 +23,86 @@ use midly::{
     num::{u4, u7},
     MidiMessage,
 };
+mod config;
 
 type Note = u7;
 
+fn build_ui(state: Rc<State>, app: &Application) {
+    let builder = Builder::from_resource("/eu/muehml/cba-midi/window.blp");
+    let window: ApplicationWindow = builder.object("window").expect("Coudln't get window");
+    window.set_application(Some(app));
+
+
+    let keyboard_listener = EventControllerKey::new();
+
+    let about: AboutDialog = builder.object("about").expect("Coudln't get about");
+    about.set_authors(&["Lars Mühmel <lars@muehml.eu>"]);
+
+    let action_about = SimpleAction::new("about", None);
+    action_about.connect_activate(move |_, _| about.show());
+    app.add_action(&action_about);
+
+    let octave_switcher: DropDown = builder.object("octave_switcher").expect("Coudln't get octave-switcher");
+
+    octave_switcher.connect_selected_notify(clone!(@strong state => move |dropdown| {
+        state.borrow_mut().octave = dropdown.selected() as u8;
+    }));
+
+    keyboard_listener.connect_key_pressed(
+        clone!(@strong state => move |_controller, key, _keycode, _modifiers| {
+            if key == Key::space {
+                state.borrow_mut().midi_panic();
+                return Inhibit(true)
+            }
+            let key = key.to_lower();
+            Inhibit(state.borrow_mut().press_key(key.name().unwrap().as_str()))
+        }),
+    );
+    keyboard_listener.connect_key_released(
+        clone!(@strong state => move |_controller, key, _keycode, _modifiers| {
+            let key = key.to_lower();
+            state.borrow_mut().release_key(key.name().unwrap().as_str());
+        }),
+    );
+
+    let focus_listener = EventControllerFocus::new();
+
+    focus_listener.connect_leave(clone!(@strong state => move |_controller| {
+        state.borrow_mut().midi_panic();
+    }));
+    window.add_controller(keyboard_listener);
+    window.add_controller(focus_listener);
+
+
+    window.show();
+    build_connection_window(state.clone()).expect("Couldn't create connection window");
+}
+
 fn main() -> glib::ExitCode {
-    let prefix = std::option_env!("PREFIX").unwrap_or("");
-    let mut map_path = PathBuf::from(prefix);
-    map_path.push("share/cba-midi/map.txt");
+    let res = gio::Resource::load(config::RESOURCE_FILE).expect("Coudln't load resource file");
+    gio::resources_register(&res);
+    let mut map_path = PathBuf::from(config::PKGDATADIR);
+    map_path.push("map.txt");
     dbg!(&map_path);
     let state = Rc::new(State::new(map_path).expect("Couldn't initialise State"));
     let app = Application::builder()
-        .application_id("eu.muehml.CBAKeyboard")
+        .application_id(config::APP_ID)
         .build();
 
-    app.connect_activate(move |app| {
-        let window = ApplicationWindow::builder()
-            .application(app)
-            .default_width(640)
-            .default_height(120)
-            .title("Chromatic Button Accordion Virtual Keyboard")
-            .build();
-
-        let keyboard_listener = EventControllerKey::new();
-
-        let container = gtk::Box::builder()
-            .margin_start(20)
-            .orientation(gtk::Orientation::Vertical)
-            .build();
-
-        let label = Label::new(None);
-        label.set_markup(r"This Application allows you to send Midi events using the keyboard.
-The layout mimmics that of a <b>Type C <a href='https://en.wikipedia.org/wiki/Chromatic_button_accordion'>Chromatic Button Accordion</a></b>, with the <b>Note C being mapped to the Key C</b>.
-Press <b>Spacebar</b> to turn of all notes.");
-        label.set_wrap(true);
-        label.set_wrap_mode(gtk::pango::WrapMode::Word);
-
-        container.append(&label);
-
-
-        window.set_child(Some(&container));
-        window.set_can_focus(false);
-
-        let about = AboutDialog::builder()
-            .authors(["Lars Mühmel <lars@muehml.eu>"])
-            .license_type(gtk::License::Gpl30)
-            .copyright("© 2023 Lars Mühmel")
-            .website("https://github.com/BurNiinTRee/cba-midi")
-            .program_name("CBA Midi")
-            .comments("This Application allows you to send Midi events using the keyboard")
-            .build();
-
-        let action_about = SimpleAction::new("about", None);
-        action_about.connect_activate(move |_, _| about.show());
-        app.add_action(&action_about);
-
-        let headerbar = HeaderBar::new();
-
-        let about_button = gtk::Button::from_icon_name("help-about-symbolic");
-        about_button.set_action_name(Some("app.about"));
-        headerbar.pack_end(&about_button);
-
-
-        let numbers = ["C0/C,,", "C1/C,", "C2/C", "C3/c", "C4/c‘", "C5/c‘‘", "C6c/c‘‘‘", "C7/c‘‘‘‘", "C8/c‘‘‘‘‘"];
-        let octave_list_model = StringList::new(&numbers);
-        let octave_switcher = DropDown::builder().model(&octave_list_model).selected(state.borrow_mut().octave.into()).build();
-
-        octave_switcher.connect_selected_notify(clone!(@strong state => move |dropdown| {
-            state.borrow_mut().octave = dropdown.selected() as u8;
-        }));
-
-        headerbar.pack_start(&octave_switcher);
-
-        window.set_titlebar(Some(&headerbar));
-
-        keyboard_listener.connect_key_pressed(
-            clone!(@strong state => move |_controller, key, _keycode, _modifiers| {
-                if key == Key::space {
-                    state.borrow_mut().midi_panic();
-                    return Inhibit(true)
-                }
-                let key = key.to_lower();
-                Inhibit(state.borrow_mut().press_key(key.name().unwrap().as_str()))
-            }),
-        );
-        keyboard_listener.connect_key_released(
-            clone!(@strong state => move |_controller, key, _keycode, _modifiers| {
-                let key = key.to_lower();
-                state.borrow_mut().release_key(key.name().unwrap().as_str());
-            }),
-        );
-
-        let focus_listener = EventControllerFocus::new();
-
-        focus_listener.connect_leave(clone!(@strong state => move |_controller| {
-            state.borrow_mut().midi_panic();
-        }));
-        window.add_controller(keyboard_listener);
-        window.add_controller(focus_listener);
-
-
-        window.show();
-        build_connection_window(state.clone()).expect("Couldn't create connection window").show();
-    });
+    app.connect_activate(clone!(@strong state => move |app| build_ui(state.clone(), app)));
 
     app.run()
 }
 
-fn build_connection_window(state: Rc<State>) -> Result<Window, Box<dyn std::error::Error>> {
-    let window = Window::builder()
-        .title("Select Midi Output")
-        .modal(true)
-        .build();
-
+fn build_connection_window(state: Rc<State>) -> Result<(), Box<dyn std::error::Error>> {
+    let builder = Builder::from_resource("/eu/muehml/cba-midi/window.blp");
+    let window: Window = builder.object("connect_window").expect("Coudln't get connect_window");
     let output = MidiOutput::new("Chromatic Keyboard")?;
 
     let available_ports = output.ports();
 
+    // Otherwise this gives a warning on windows
+    #[cfg_attr(windows, allow(unused_mut))]
     let mut ports_with_names: Vec<_> = available_ports
         .into_iter()
         .filter_map(|port| match output.port_name(&port) {
@@ -157,7 +121,8 @@ fn build_connection_window(state: Rc<State>) -> Result<Window, Box<dyn std::erro
 
     let output = Cell::new(Some(output));
     let names = StringList::new(&names);
-    let dropdown = DropDown::builder().model(&names).build();
+    let dropdown: DropDown = builder.object("output_dropdown").expect("Coudln't get output_dropdown");
+    dropdown.set_model(Some(&names));
     dropdown.set_selected(GTK_INVALID_LIST_POSITION);
     dropdown.connect_selected_notify(clone!(@strong window => move |dropdown| {
         if let Some(out) = output.replace(None).take() {
@@ -181,8 +146,9 @@ fn build_connection_window(state: Rc<State>) -> Result<Window, Box<dyn std::erro
         }
     }));
 
-    window.set_child(Some(&dropdown));
-    Ok(window)
+    window.show();
+
+    Ok(())
 }
 
 struct State(RefCell<StateInner>);

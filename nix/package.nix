@@ -1,39 +1,42 @@
 {
   alsaLib,
   autoPatchelfHook,
+  blueprint-compiler,
   cairo,
-  copyDesktopItems,
+  cargo,
   gdk-pixbuf,
   glib,
   graphene,
   gtk4,
   harfbuzz,
   libjack2,
-  makeDesktopItem,
+  meson,
   mold,
+  ninja,
   pango,
   pkg-config,
+  rustc,
   rustPlatform,
+  stdenv,
+  wrapGAppsHook4
 }:
-rustPlatform.buildRustPackage {
+stdenv.mkDerivation (final: {
   name = "cba-midi";
   src = ../.;
-  cargoLock.lockFile = ../Cargo.lock;
+  cargoDeps = rustPlatform.importCargoLock {
+    lockFile = ../Cargo.lock;
+  };
   nativeBuildInputs = [
     autoPatchelfHook
-    copyDesktopItems
+    blueprint-compiler
+    cargo
     mold
     pkg-config
-  ];
-  PREFIX = placeholder "out";
-  desktopItems = [
-    (
-      makeDesktopItem {
-        name = "cba-midi";
-        desktopName = "CBA Keyboard";
-        exec = "cba-midi";
-      }
-    )
+    meson
+    ninja
+    rustc
+    rustPlatform.cargoSetupHook
+    wrapGAppsHook4
   ];
   buildInputs = [
     alsaLib
@@ -46,7 +49,4 @@ rustPlatform.buildRustPackage {
     libjack2
     pango
   ];
-  postInstall = ''
-    install -D -t $out/share/cba-midi share/cba-midi/map.txt
-  '';
-}
+})

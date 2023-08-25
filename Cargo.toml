@@ -8,7 +8,7 @@ midly = "0.5.3"
 
 [dependencies.midir]
 version = "0.9.1"
-features = ["jack"]
+features = ["jack", "winrt"]
 
 [dependencies.gtk]
 package = "gtk4"

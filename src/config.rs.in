@@ -1,0 +1,3 @@
+pub const PKGDATADIR: &str = @PKGDATADIR@;
+pub const APP_ID: &str = @APP_ID@;
+pub const RESOURCE_FILE: &str = concat!(@PKGDATADIR@, "/cba-midi-resources.gresource");

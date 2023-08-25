@@ -20,34 +20,31 @@
 
       imports = [
         bntr.modules.flake.nixpkgs
-        devenv.flakeModule
       ];
 
-      perSystem = {config, pkgs, ...}: {
+      perSystem = {
+        config,
+        pkgs,
+        ...
+      }: {
         packages = {
           default = pkgs.callPackage ./nix/package.nix {};
         };
-        nixpkgs.overlays = [fenix.overlays.default];
-        devenv.shells.default = {pkgs, ...}: {
-          languages.c.enable = true;
-          packages = [
-            pkgs.fenix.stable.toolchain
-            pkgs.rust-analyzer
-            pkgs.mold
-            # MIDI
-            pkgs.alsaLib
-            pkgs.pipewire.jack
-            pkgs.libjack2
-            # GTK4
-            pkgs.cairo
-            pkgs.gdk-pixbuf
-            pkgs.glib
-            pkgs.graphene
-            pkgs.gtk4
-            pkgs.harfbuzz
-            pkgs.pango
-          ];
+        devShells.default = pkgs.mkShell {
+          inputsFrom = [config.packages.default];
+          packages = [pkgs.rust-analyzer];
+          LD_LIBRARY_PATH = lib.makeLibraryPath (with pkgs; [
+            glib
+            gtk4
+            pipewire.jack 
+            pango
+            cairo
+            harfbuzz
+            gdk-pixbuf
+            graphene
+          ]);
         };
+        nixpkgs.overlays = [fenix.overlays.default];
       };
     });
 }

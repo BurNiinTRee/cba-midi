@@ -1,0 +1,59 @@
+using Gtk 4.0;
+
+ApplicationWindow window {
+  title: "Chromatic Button Accordion Virtual Keyboard";
+  can-focus: false;
+  titlebar: HeaderBar {
+    [start]
+    DropDown octave_switcher {
+      model: StringList {
+        strings [
+          "C0/C,,",
+          "C1/C,",
+          "C2/C",
+          "C3/c",
+          "C4/c‘",
+          "C5/c‘‘",
+          "C6c/c‘‘‘",
+          "C7/c‘‘‘‘",
+          "C8/c‘‘‘‘‘",
+        ]
+      };
+      selected: 4;
+    }
+    [end]
+    Button  {
+      icon-name: "help-about-symbolic";
+      action-name: "app.about";
+    }
+  };
+  
+  Box {
+    orientation: vertical;
+    margin-start: 20;
+    margin-end: 20;
+    margin-top: 10;
+    margin-bottom: 10;
+    Label {
+      label: "This Application allows you to send Midi events using the keyboard.\nThe layout mimmics that of a <b>Type C <a href='https://en.wikipedia.org/wiki/Chromatic_button_accordion'>Chromatic Button Accordion</a></b>, with the <b>Note C being mapped to the Key C</b>.\nPress <b>Spacebar</b> to turn of all notes.";
+      use-markup: true;
+      wrap: true;
+      wrap-mode: word;
+    }
+  }
+}
+
+Window connect_window {
+  title: "Select Midi Output";
+  modal: true;
+  DropDown output_dropdown {}
+}
+
+AboutDialog about {
+  license-type: gpl_3_0;
+  copyright: "© 2023 Lars Mühmel";
+  website: "https://github.com/BurNiinTRee/cba-midi";
+  program-name: "CBA Midi";
+  comments: "This Application allows you to send Midi events using the keyboard";
+}
+
