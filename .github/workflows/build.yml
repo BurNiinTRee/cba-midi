@@ -33,7 +33,7 @@ jobs:
         run: |
           meson setup builddir
           meson compile -C builddir
-          meson install -C --destdir=release
+          meson install -C builddir --destdir=release
 
       # - name: Create Artifact
       #   run: |
