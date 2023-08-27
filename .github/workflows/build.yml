@@ -19,7 +19,6 @@ jobs:
           update: true
           msystem: ucrt64
           pacboy: >-
-            bash:p
             meson:p
             ninja:p
             pkg-config:p
