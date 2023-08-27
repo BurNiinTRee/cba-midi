@@ -21,6 +21,7 @@ jobs:
           pacboy: >-
             meson:p
             ninja:p
+            pkg-config:p
             rust:p
             gtk4:p
 
