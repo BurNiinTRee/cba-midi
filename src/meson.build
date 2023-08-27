@@ -33,11 +33,16 @@ rust_target = 'debug'
 
 cargo_env = [ 'CARGO_HOME=' + meson.project_build_root() / 'cargo-home' ]
 
+exe_suffix = ''
+if host_machine.system() == 'windows'
+  exe_suffix = '.exe'
+endif
+
 cargo_build = custom_target(
   'cargo-build',
   build_by_default: true,
   build_always_stale: true,
-  output: meson.project_name(),
+  output: meson.project_name() + exe_suffix,
   console: true,
   install: true,
   install_dir: bindir,
@@ -45,7 +50,7 @@ cargo_build = custom_target(
   command: [
     find_program('python3'),
     meson.project_source_root() / 'build-aux' / 'cargo-build.py',
-    meson.project_build_root() / 'src' / rust_target / meson.project_name(),
+    meson.project_build_root() / 'src' / rust_target / meson.project_name() + exe_suffix,
     '@OUTPUT@',
     cargo_options,
   ]
