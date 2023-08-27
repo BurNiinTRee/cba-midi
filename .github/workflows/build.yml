@@ -31,7 +31,7 @@ jobs:
 
       - name: Build CBA-midi
         run: |
-          meson setup builddir
+          meson setup builddir --prefix=/
           meson compile -C builddir
           meson install -C builddir --destdir=release
 
@@ -45,5 +45,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: windows-build
-          path: release/
+          path: builddir/release/
       
