@@ -20,8 +20,8 @@ jobs:
           install: >-
             meson
             ninja
-            mingw-w64-rust
-            mingw-w64-gtk4
+            mingw-w64-ucrt-x86_64-rust
+            mingw-w64-ucrt-x86_64-gtk4
 
       - uses: actions/checkout@v3
 
