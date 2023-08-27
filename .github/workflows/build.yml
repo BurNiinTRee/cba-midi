@@ -30,7 +30,7 @@ jobs:
 
       - name: Build CBA-midi
         run: |
-          meson setup builddir --prefix=.
+          meson setup builddir
           meson compile -C builddir
           meson install -C --destdir=release
 

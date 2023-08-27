@@ -78,10 +78,25 @@ fn build_ui(state: Rc<State>, app: &Application) {
     build_connection_window(state.clone()).expect("Couldn't create connection window");
 }
 
+
 fn main() -> glib::ExitCode {
+    #[cfg(not(windows))]
     let res = gio::Resource::load(config::RESOURCE_FILE).expect("Coudln't load resource file");
+    #[cfg(windows)]
+    let res = {
+        let mut path = std::env::current_exe().expect("Couldn't locate cba-midi.exe");
+        path.pop();
+        path.push("cba-midi-resources.gresource");
+        gio::Resource::load(path).expect("Coudln't load resource file")
+    };
     gio::resources_register(&res);
+    #[cfg(not(windows))]
     let mut map_path = PathBuf::from(config::PKGDATADIR);
+    #[cfg(windows)]
+    let mut map_path = std::env::current_exe().expect("Couldn't locate cba-midi.exe");
+    #[cfg(windows)]
+    map_path.pop();
+
     map_path.push("map.txt");
     dbg!(&map_path);
     let state = Rc::new(State::new(map_path).expect("Couldn't initialise State"));
