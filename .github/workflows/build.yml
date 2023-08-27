@@ -15,13 +15,14 @@ jobs:
     steps:
       - uses: msys2/setup-msys2@v2
         with:
+          release: false
           update: true
           msystem: ucrt64
-          install: >-
-            meson
-            ninja
-            mingw-w64-ucrt-x86_64-rust
-            mingw-w64-ucrt-x86_64-gtk4
+          pacboy: >-
+            meson:p
+            ninja:p
+            rust:p
+            gtk4:p
 
       - uses: actions/checkout@v3
 
