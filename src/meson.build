@@ -1,7 +1,7 @@
 subdir('ui')
 
 cargo_options = [ '--manifest-path', meson.project_source_root() / 'Cargo.toml' ]
-cargo_options += [ '--target-dir', meson.project_build_root() / 'src' ]
+cargo_options += [ '--target-dir', '@PRIVATE_DIR@' ]
 
 global_conf = configuration_data()
 global_conf.set_quoted('PKGDATADIR', pkgdatadir)
@@ -31,7 +31,7 @@ run_command(
 
 rust_target = 'debug'
 
-cargo_env = [ 'CARGO_HOME=' + meson.project_build_root() / 'cargo-home' ]
+cargo_env = [ 'CARGO_HOME=' + '@PRIVATE_DIR@' / 'cargo-home' ]
 
 cargo_build = custom_target(
   'cargo-build',
@@ -42,11 +42,12 @@ cargo_build = custom_target(
   install: true,
   install_dir: bindir,
   command: [
-    'env',
+    meson.project_source_root() / 'build-aux' / 'sh',
+    find_program('env'),
     cargo_env,
     cargo, 'build',
     cargo_options,
     '&&',
-    'cp', 'src' / rust_target / meson.project_name(), '@OUTPUT@',
+    'cp', '@PRIVATE_DIR@' / rust_target / meson.project_name(), '@OUTPUT@',
   ]
 )
