@@ -29,7 +29,12 @@ run_command(
   check: true
 )
 
-rust_target = 'debug'
+if get_option('buildtype') == 'release'
+  rust_target = 'release'
+  cargo_options += '--release'
+else
+  rust_target = 'debug'
+endif
 
 cargo_env = [ 'CARGO_HOME=' + meson.project_build_root() / 'cargo-home' ]
 

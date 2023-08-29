@@ -13,7 +13,7 @@ use gtk::{
     gdk::Key,
     gio::{self, SimpleAction},
     glib::{self, clone},
-    AboutDialog, DropDown, HeaderBar, Label, StringList, Window, Builder, MenuButton,
+    AboutDialog, DropDown, StringList, Window, Builder,
 };
 use gtk::{prelude::*, EventControllerFocus, EventControllerKey, Inhibit};
 use gtk::{Application, ApplicationWindow};
