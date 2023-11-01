@@ -1,4 +1,5 @@
 {
+  lib,
   alsaLib,
   autoPatchelfHook,
   blueprint-compiler,
@@ -22,7 +23,17 @@
 }:
 stdenv.mkDerivation (final: {
   name = "cba-midi";
-  src = ../.;
+  src = lib.fileset.toSource {
+    root = ./..;
+    fileset = lib.fileset.unions [
+      ../Cargo.toml
+      ../Cargo.lock
+      ../src
+      ../meson.build
+      ../build-aux/dist-vendor.sh
+      ../build-aux/cargo-build.py
+    ];
+  };
   cargoDeps = rustPlatform.importCargoLock {
     lockFile = ../Cargo.lock;
   };
