@@ -1,15 +1,13 @@
 {
   inputs = {
-    bntr.url = "github:BurNiinTRee/nix-sources?dir=inner";
-    devenv.url = "github:cachix/devenv";
-    fenix.url = "github:nix-community/fenix";
+    bntr.url = "github:BurNiinTRee/nix-sources?dir=modules";
+    devenv.url = "git+file:///home/user/projects/devenv";
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   outputs = inputs @ {
     flake-parts,
-    fenix,
     bntr,
     devenv,
     nixpkgs,
@@ -20,7 +18,10 @@
 
       imports = [
         bntr.modules.flake.nixpkgs
+        devenv.flakeModule
       ];
+
+      debug = true;
 
       perSystem = {
         config,
@@ -30,13 +31,14 @@
         packages = {
           default = pkgs.callPackage ./nix/package.nix {};
         };
-        devShells.default = pkgs.mkShell {
-          inputsFrom = [config.packages.default];
+        devenv.shells.default = let config'  = config; in {config, ...}: {
+          inputsFrom = [config'.packages.default];
           packages = [
             pkgs.flatpak-builder
             pkgs.rust-analyzer
           ];
-          LD_LIBRARY_PATH = lib.makeLibraryPath (with pkgs; [
+          env.GI_TYPELIB_PATH = "${config.env.DEVENV_PROFILE}/lib/girepository-1.0";
+          env.LD_LIBRARY_PATH = lib.makeLibraryPath (with pkgs; [
             cairo
             gdk-pixbuf
             glib
@@ -47,7 +49,6 @@
             pipewire.jack
           ]);
         };
-        nixpkgs.overlays = [fenix.overlays.default];
       };
     });
 }
