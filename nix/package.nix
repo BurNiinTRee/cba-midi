@@ -29,6 +29,7 @@ stdenv.mkDerivation (final: {
       ../Cargo.toml
       ../Cargo.lock
       ../src
+      ../data
       ../meson.build
       ../build-aux/dist-vendor.py
       ../build-aux/cargo-build.py
