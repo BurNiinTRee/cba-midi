@@ -24,7 +24,7 @@ datadir = prefix / get_option('datadir')
 pkgdatadir = datadir / meson.project_name()
 
 meson.add_dist_script(
-  'build-aux/dist-vendor.sh'
+  'build-aux/dist-vendor.py'
 )
 
 

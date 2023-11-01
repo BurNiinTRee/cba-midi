@@ -36,6 +36,7 @@
           packages = [
             pkgs.flatpak-builder
             pkgs.rust-analyzer
+            pkgs.python3
           ];
           env.GI_TYPELIB_PATH = "${config.env.DEVENV_PROFILE}/lib/girepository-1.0";
           env.LD_LIBRARY_PATH = lib.makeLibraryPath (with pkgs; [

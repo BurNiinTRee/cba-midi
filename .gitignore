@@ -1,4 +1,5 @@
 /target
 .devenv
 result*
+src/config.rs
 **/.flatpak-builder
