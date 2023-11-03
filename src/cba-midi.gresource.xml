@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<gresources>
-  <gresource prefix="/eu/muehml/cba-midi/">
-    <file alias="window.blp">ui/window.ui</file>
-  </gresource>
-</gresources>

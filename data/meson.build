@@ -1,3 +1,4 @@
+subdir('ui')
 install_data('map.txt', install_dir: pkgdatadir)
 
 desktop_conf = configuration_data()
@@ -20,3 +21,13 @@ if desktop_file_validate.found()
     ]
   )
 endif
+
+gnome.compile_resources('cba-midi-resources',
+  'cba-midi.gresource.xml',
+  dependencies: blueprints,
+  source_dir: ['src', meson.current_build_dir()],
+  gresource_bundle: true,
+  install: true,
+  install_dir: pkgdatadir
+)
+

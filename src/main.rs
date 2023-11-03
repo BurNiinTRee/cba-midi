@@ -29,20 +29,20 @@ type Note = u7;
 
 fn build_ui(state: Rc<State>, app: &Application) {
     let builder = Builder::from_resource("/eu/muehml/cba-midi/window.blp");
-    let window: ApplicationWindow = builder.object("window").expect("Coudln't get window");
+    let window: ApplicationWindow = builder.object("window").expect("Couldn't get window");
     window.set_application(Some(app));
 
 
     let keyboard_listener = EventControllerKey::new();
 
-    let about: AboutDialog = builder.object("about").expect("Coudln't get about");
+    let about: AboutDialog = builder.object("about").expect("Couldn't get about");
     about.set_authors(&["Lars Mühmel <lars@muehml.eu>"]);
 
     let action_about = SimpleAction::new("about", None);
     action_about.connect_activate(move |_, _| about.show());
     app.add_action(&action_about);
 
-    let octave_switcher: DropDown = builder.object("octave_switcher").expect("Coudln't get octave-switcher");
+    let octave_switcher: DropDown = builder.object("octave_switcher").expect("Couldn't get octave-switcher");
 
     octave_switcher.connect_selected_notify(clone!(@strong state => move |dropdown| {
         state.borrow_mut().octave = dropdown.selected() as u8;
@@ -74,20 +74,23 @@ fn build_ui(state: Rc<State>, app: &Application) {
     window.add_controller(focus_listener);
 
 
+    let action_connect = SimpleAction::new("connect", None);
+    action_connect.connect_activate(move |_, _| build_connection_window(state.clone()).expect("Couldn't create connection window"));
+    app.add_action(&action_connect);
     window.show();
-    build_connection_window(state.clone()).expect("Couldn't create connection window");
+    action_connect.activate(None);
 }
 
 
 fn main() -> glib::ExitCode {
     #[cfg(not(windows))]
-    let res = gio::Resource::load(config::RESOURCE_FILE).expect("Coudln't load resource file");
+    let res = gio::Resource::load(config::RESOURCE_FILE).expect("Couldn't load resource file");
     #[cfg(windows)]
     let res = {
         let mut path = std::env::current_exe().expect("Couldn't locate cba-midi.exe");
         path.pop();
         path.push("cba-midi-resources.gresource");
-        gio::Resource::load(path).expect("Coudln't load resource file")
+        gio::Resource::load(path).expect("Couldn't load resource file")
     };
     gio::resources_register(&res);
     #[cfg(not(windows))]
@@ -110,8 +113,9 @@ fn main() -> glib::ExitCode {
 }
 
 fn build_connection_window(state: Rc<State>) -> Result<(), Box<dyn std::error::Error>> {
+    state.borrow_mut().midi_panic();
     let builder = Builder::from_resource("/eu/muehml/cba-midi/window.blp");
-    let window: Window = builder.object("connect_window").expect("Coudln't get connect_window");
+    let window: Window = builder.object("connect_window").expect("Couldn't get connect_window");
     let output = MidiOutput::new("Chromatic Keyboard")?;
 
     let available_ports = output.ports();
@@ -136,7 +140,7 @@ fn build_connection_window(state: Rc<State>) -> Result<(), Box<dyn std::error::E
 
     let output = Cell::new(Some(output));
     let names = StringList::new(&names);
-    let dropdown: DropDown = builder.object("output_dropdown").expect("Coudln't get output_dropdown");
+    let dropdown: DropDown = builder.object("output_dropdown").expect("Couldn't get output_dropdown");
     dropdown.set_model(Some(&names));
     dropdown.set_selected(GTK_INVALID_LIST_POSITION);
     dropdown.connect_selected_notify(clone!(@strong window => move |dropdown| {
