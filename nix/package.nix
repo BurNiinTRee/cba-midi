@@ -16,10 +16,10 @@
   ninja,
   pango,
   pkg-config,
-  rustc,
   rustPlatform,
+  rustc,
   stdenv,
-  wrapGAppsHook4
+  wrapGAppsHook4,
 }:
 stdenv.mkDerivation (final: {
   name = "cba-midi";
