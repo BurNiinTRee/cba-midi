@@ -8,15 +8,11 @@ use std::{
     rc::Rc,
 };
 
-use gtk::{
-    ffi::GTK_INVALID_LIST_POSITION,
-    gdk::Key,
-    gio::{self, SimpleAction},
-    glib::{self, clone},
-    AboutDialog, DropDown, StringList, Window, Builder,
-};
-use gtk::{prelude::*, EventControllerFocus, EventControllerKey, Inhibit};
-use gtk::{Application, ApplicationWindow};
+use adw::{gio, glib, gtk, prelude::*, Application, ApplicationWindow, ComboRow};
+use gio::SimpleAction;
+use glib::{clone, Propagation};
+use gtk::{ffi::GTK_INVALID_LIST_POSITION, gdk::Key, Builder, DropDown, StringList, Window};
+use gtk::{EventControllerFocus, EventControllerKey};
 use midir::{MidiOutput, MidiOutputConnection};
 use midly::{
     live::LiveEvent,
@@ -32,17 +28,18 @@ fn build_ui(state: Rc<State>, app: &Application) {
     let window: ApplicationWindow = builder.object("window").expect("Couldn't get window");
     window.set_application(Some(app));
 
-
     let keyboard_listener = EventControllerKey::new();
 
-    let about: AboutDialog = builder.object("about").expect("Couldn't get about");
-    about.set_authors(&["Lars Mühmel <lars@muehml.eu>"]);
+    let about: adw::AboutWindow = builder.object("about").expect("Couldn't get about");
+    about.set_developers(&["Lars Mühmel <lars@muehml.eu>"]);
 
     let action_about = SimpleAction::new("about", None);
     action_about.connect_activate(move |_, _| about.show());
     app.add_action(&action_about);
 
-    let octave_switcher: DropDown = builder.object("octave_switcher").expect("Couldn't get octave-switcher");
+    let octave_switcher: adw::ComboRow = builder
+        .object("octave_switcher")
+        .expect("Couldn't get octave-switcher");
 
     octave_switcher.connect_selected_notify(clone!(@strong state => move |dropdown| {
         state.borrow_mut().octave = dropdown.selected() as u8;
@@ -52,10 +49,14 @@ fn build_ui(state: Rc<State>, app: &Application) {
         clone!(@strong state => move |_controller, key, _keycode, _modifiers| {
             if key == Key::space {
                 state.borrow_mut().midi_panic();
-                return Inhibit(true)
+                return Propagation::Stop
             }
             let key = key.to_lower();
-            Inhibit(state.borrow_mut().press_key(key.name().unwrap().as_str()))
+            if state.borrow_mut().press_key(key.name().unwrap().as_str()) {
+                Propagation::Stop
+            } else {
+                Propagation::Proceed
+            }
         }),
     );
     keyboard_listener.connect_key_released(
@@ -73,14 +74,14 @@ fn build_ui(state: Rc<State>, app: &Application) {
     window.add_controller(keyboard_listener);
     window.add_controller(focus_listener);
 
-
     let action_connect = SimpleAction::new("connect", None);
-    action_connect.connect_activate(move |_, _| build_connection_window(state.clone()).expect("Couldn't create connection window"));
+    action_connect.connect_activate(move |_, _| {
+        build_connection_window(state.clone()).expect("Couldn't create connection window")
+    });
     app.add_action(&action_connect);
     window.show();
     action_connect.activate(None);
 }
-
 
 fn main() -> glib::ExitCode {
     #[cfg(not(windows))]
@@ -115,7 +116,9 @@ fn main() -> glib::ExitCode {
 fn build_connection_window(state: Rc<State>) -> Result<(), Box<dyn std::error::Error>> {
     state.borrow_mut().midi_panic();
     let builder = Builder::from_resource("/eu/muehml/cba-midi/window.blp");
-    let window: Window = builder.object("connect_window").expect("Couldn't get connect_window");
+    let window: Window = builder
+        .object("connect_window")
+        .expect("Couldn't get connect_window");
     let output = MidiOutput::new("Chromatic Keyboard")?;
 
     let available_ports = output.ports();
@@ -139,11 +142,14 @@ fn build_connection_window(state: Rc<State>) -> Result<(), Box<dyn std::error::E
         .collect();
 
     let output = Cell::new(Some(output));
+    dbg!(&names);
     let names = StringList::new(&names);
-    let dropdown: DropDown = builder.object("output_dropdown").expect("Couldn't get output_dropdown");
+    let dropdown: ComboRow = builder
+        .object("output_dropdown")
+        .expect("Couldn't get output_dropdown");
     dropdown.set_model(Some(&names));
     dropdown.set_selected(GTK_INVALID_LIST_POSITION);
-    dropdown.connect_selected_notify(clone!(@strong window => move |dropdown| {
+    dropdown.connect_selected_notify(clone!(@strong window, @strong builder => move |dropdown| {
         if let Some(out) = output.replace(None).take() {
             let idx = dropdown.selected();
             let port = &ports_with_names[idx as usize].0;
@@ -230,7 +236,7 @@ impl StateInner {
         let key = Key::from_name(key_name).unwrap();
         let Some(&note) = self.key_to_note.get(&key) else {
             println!("Unmapped Key: {}", key_name);
-            return true;
+            return false;
         };
         let note = note + u7::new(self.octave * 12);
         if self.held_keys.contains(&key) {

@@ -1,64 +1,86 @@
 using Gtk 4.0;
+using Adw 1;
 
-ApplicationWindow window {
+Adw.ApplicationWindow window {
   title: "Chromatic Button Accordion Virtual Keyboard";
-  can-focus: false;
-  titlebar: HeaderBar {
-    [start]
-    Button  {
-      icon-name: "soundcard-symbolic";
-      action-name: "app.connect";
+  content: Gtk.Box {
+    orientation: vertical;
+    Adw.HeaderBar {
+      [start]
+      Button  {
+        action-name: "app.connect";
+        Adw.ButtonContent {
+          label: "Output";
+          icon-name: "soundcard-symbolic";
+        }
+      }
+      ListBox {
+        Adw.ComboRow octave_switcher {
+          title: "Octave";
+          selected: 4;
+          model: StringList {
+            strings [
+              "C0/C,,",
+              "C1/C,",
+              "C2/C",
+              "C3/c",
+              "C4/c‘",
+              "C5/c‘‘",
+              "C6c/c‘‘‘",
+              "C7/c‘‘‘‘",
+              "C8/c‘‘‘‘‘",
+            ]
+          };
+        }
+      }
+      [end]
+      Button  {
+        action-name: "app.about";
+        Adw.ButtonContent {
+          icon-name: "help-about-symbolic";
+          label: "About";
+        }
+      }
     }
-    DropDown octave_switcher {
-      model: StringList {
-        strings [
-          "C0/C,,",
-          "C1/C,",
-          "C2/C",
-          "C3/c",
-          "C4/c‘",
-          "C5/c‘‘",
-          "C6c/c‘‘‘",
-          "C7/c‘‘‘‘",
-          "C8/c‘‘‘‘‘",
-        ]
-      };
-      selected: 4;
+
+    Gtk.Box main_area {
+      orientation: vertical;
+      margin-start: 20;
+      margin-end: 20;
+      margin-top: 10;
+      margin-bottom: 10;
+      Label {
+        label: "This Application allows you to send Midi events using the keyboard.\nThe layout mimmics that of a <b>Type C <a href='https://en.wikipedia.org/wiki/Chromatic_button_accordion'>Chromatic Button Accordion</a></b>, with the <b>Note C being mapped to the Key C</b>.\nPress <b>Spacebar</b> to turn of all notes.";
+        use-markup: true;
+        wrap: true;
+        wrap-mode: word;
+      }
     }
-    [end]
-    Button  {
-      icon-name: "help-about-symbolic";
-      action-name: "app.about";
-    }
+
+
   };
-  
+}
+
+Adw.Window connect_window {
+  title: "Select Midi Output";
+  modal: true;
+  transient-for: window;
   Box {
     orientation: vertical;
-    margin-start: 20;
-    margin-end: 20;
-    margin-top: 10;
-    margin-bottom: 10;
-    Label {
-      label: "This Application allows you to send Midi events using the keyboard.\nThe layout mimmics that of a <b>Type C <a href='https://en.wikipedia.org/wiki/Chromatic_button_accordion'>Chromatic Button Accordion</a></b>, with the <b>Note C being mapped to the Key C</b>.\nPress <b>Spacebar</b> to turn of all notes.";
-      use-markup: true;
-      wrap: true;
-      wrap-mode: word;
+    Adw.HeaderBar {}
+    ListBox {
+      Adw.ComboRow output_dropdown {
+        title: "Output";
+      }
     }
   }
 }
 
-Window connect_window {
-  title: "Select Midi Output";
-  modal: true;
-  transient-for: window;
-  DropDown output_dropdown {}
-}
-
-AboutDialog about {
+Adw.AboutWindow about {
   license-type: gpl_3_0;
   copyright: "© 2023 Lars Mühmel";
   website: "https://github.com/BurNiinTRee/cba-midi";
-  program-name: "CBA Midi";
+  application-name: "CBA Midi";
   comments: "This Application allows you to send Midi events using the keyboard";
 }
 

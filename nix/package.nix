@@ -10,6 +10,7 @@
   graphene,
   gtk4,
   harfbuzz,
+  libadwaita,
   libjack2,
   meson,
   mold,
@@ -58,6 +59,7 @@ stdenv.mkDerivation (final: {
     graphene
     gtk4
     harfbuzz
+    libadwaita
     libjack2
     pango
   ];

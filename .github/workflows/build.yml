@@ -9,12 +9,13 @@ jobs:
   build-linux:
     name: build-linux
     runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
     steps:
       - uses: actions/checkout@v3
       - run: |
-          sudo apt-get update
-          sudo apt-get upgrade
-          sudo apt-get install build-essential mold pkg-config libasound2 libasound2-dev libjack-jackd2-0 libjack-jackd2-dev libgtk-4-1 libgtk-4-dev cargo meson ninja-build blueprint-compiler
+          sudo dnf update -y
+          sudo dnf install -y gcc cargo meson ninja-build blueprint-compiler mold pkg-config alsa-lib-devel jack-audio-connection-kit-devel libadwaita-devel
       - run: meson setup build --prefix $PWD/install
       - run: meson install -C build
       - uses: actions/upload-artifact@v3
@@ -50,6 +51,7 @@ jobs:
             pkg-config:p
             rust:p
             blueprint-compiler:p
+            libadwaita:p
             gtk4:p
 
       - uses: actions/checkout@v3
