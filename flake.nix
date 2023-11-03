@@ -35,6 +35,7 @@
           packages = [
             pkgs.flatpak-builder
             pkgs.rust-analyzer
+            pkgs.rustfmt
             pkgs.python3
           ];
           env.GI_TYPELIB_PATH = "${config.env.DEVENV_PROFILE}/lib/girepository-1.0";
@@ -47,6 +48,7 @@
             harfbuzz
             pango
             pipewire.jack
+            libadwaita
           ]);
         };
       };

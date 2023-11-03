@@ -10,6 +10,7 @@ midly = "0.5.3"
 version = "0.9.1"
 features = ["jack", "winrt"]
 
-[dependencies.gtk]
-package = "gtk4"
-version = "0.6.6"
+[dependencies.adw]
+package = "libadwaita"
+version = "0.5.3"
+features = ["v1_2"]

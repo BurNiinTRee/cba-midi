@@ -13,6 +13,7 @@ base_id = 'eu.muehml.cba-midi'
 application_id = base_id
 
 dependency('gtk4', version: '>=4.0.0')
+dependency('libadwaita-1', version: '>=1.2')
 
 blueprint_compiler = find_program('blueprint-compiler', required: true)
 cargo = find_program('cargo', required: true)
