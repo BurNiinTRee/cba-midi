@@ -1,5 +1,6 @@
 [Desktop Entry]
-Name="CBA Midi"
-Exec="@BINDIR@/cba-midi"
+Name=CBA Midi
+Exec=cba-midi
+Icon=eu.muehml.cba-midi
 Type=Application
 StartupNotify=true

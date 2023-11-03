@@ -1,15 +1,14 @@
 subdir('ui')
 install_data('map.txt', install_dir: pkgdatadir)
 
-desktop_conf = configuration_data()
-desktop_conf.set('BINDIR', bindir)
-
-desktop_file = configure_file(
-  input: '@0@.desktop.in'.format(base_id),
-  output: '@BASENAME@',
-  configuration: desktop_conf,
-  install: true,
+desktop_file = install_data(
+  '@0@.desktop.in'.format(base_id),
   install_dir: datadir / 'applications',
+)
+
+app_icon = install_data(
+  'icons/@0@.svg'.format(base_id),
+  install_dir: datadir / 'icons' / 'hicolor' / 'scalable' / 'apps'
 )
 
 if desktop_file_validate.found()

@@ -13,7 +13,7 @@ base_id = 'eu.muehml.cba-midi'
 application_id = base_id
 
 dependency('gtk4', version: '>=4.0.0')
-dependency('libadwaita-1', version: '>=1.2')
+dependency('libadwaita-1', version: '>1.2.0')
 
 blueprint_compiler = find_program('blueprint-compiler', required: true)
 cargo = find_program('cargo', required: true)
@@ -34,7 +34,7 @@ subdir('data')
 subdir('src')
 
 gnome.post_install(
-  gtk_update_icon_cache: false,
+  gtk_update_icon_cache: true,
   glib_compile_schemas: false,
   update_desktop_database: false,
 )
