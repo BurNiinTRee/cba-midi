@@ -5,6 +5,7 @@
   blueprint-compiler,
   cairo,
   cargo,
+  desktop-file-utils,
   gdk-pixbuf,
   glib,
   graphene,
@@ -43,6 +44,7 @@ stdenv.mkDerivation (final: {
     autoPatchelfHook
     blueprint-compiler
     cargo
+    desktop-file-utils
     mold
     pkg-config
     meson
