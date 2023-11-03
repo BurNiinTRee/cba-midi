@@ -5,8 +5,33 @@ on:
   push:
 
 jobs:
-  release:
-    name: release
+
+  build-linux:
+    name: build-linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          sudo apt-get update
+          sudo apt-get upgrade
+          sudo apt-get install build-essential mold pkg-config libasound2 libasound2-dev libjack-jackd2-0 libjack-jackd2-dev libgtk-4-1 libgtk-4-dev cargo meson ninja-build blueprint-compiler
+      - run: meson setup build --prefix $PWD/install
+      - run: meson install -C build
+      - uses: actions/upload-artifact@v3
+        with:
+          name: linux-build
+          path: install/
+  build-nix:
+    name: build-nix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: nix build
+  
+  build-windows:
+    name: build-windows
     runs-on: windows-latest
     defaults:
       run:
