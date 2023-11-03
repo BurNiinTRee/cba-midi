@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/eu/muehml/cba-midi/">
+    <file alias="window.blp">ui/window.ui</file>
+  </gresource>
+
+  <gresource prefix="/eu/muehml/cba-midi/icons/scalable/actions/">
+    <file alias="soundcard-symbolic.svg" preprocess="xml-stripblanks">icons/soundcard-symbolic.svg</file>
+  </gresource>
+  <gresource prefix="/eu/muehml/cba-midi/icons/scalable/actions/">
+    <file alias="help-about-symbolic.svg" preprocess="xml-stripblanks">icons/help-about-symbolic.svg</file>
+  </gresource>
+</gresources>

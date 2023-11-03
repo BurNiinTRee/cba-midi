@@ -29,8 +29,8 @@ meson.add_dist_script(
 
 
 
-subdir('src')
 subdir('data')
+subdir('src')
 
 gnome.post_install(
   gtk_update_icon_cache: false,

@@ -5,6 +5,10 @@ ApplicationWindow window {
   can-focus: false;
   titlebar: HeaderBar {
     [start]
+    Button  {
+      icon-name: "soundcard-symbolic";
+      action-name: "app.connect";
+    }
     DropDown octave_switcher {
       model: StringList {
         strings [
@@ -46,6 +50,7 @@ ApplicationWindow window {
 Window connect_window {
   title: "Select Midi Output";
   modal: true;
+  transient-for: window;
   DropDown output_dropdown {}
 }
 
