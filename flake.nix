@@ -1,7 +1,7 @@
 {
   inputs = {
     bntr.url = "github:BurNiinTRee/nix-sources?dir=modules";
-    devenv.url = "git+file:///home/user/projects/devenv";
+    devenv.url = "github:BurNiinTRee/devenv/inputsFrom";
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
@@ -21,8 +21,6 @@
         devenv.flakeModule
       ];
 
-      debug = true;
-
       perSystem = {
         config,
         pkgs,
@@ -32,6 +30,7 @@
           default = pkgs.callPackage ./nix/package.nix {};
         };
         devenv.shells.default = let config'  = config; in {config, ...}: {
+          containers = lib.mkForce {};
           inputsFrom = [config'.packages.default];
           packages = [
             pkgs.flatpak-builder

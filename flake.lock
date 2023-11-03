@@ -25,16 +25,18 @@
         "pre-commit-hooks": "pre-commit-hooks"
       },
       "locked": {
-        "dirtyRev": "bd859ef4b207c2071f5bd3cae2a74f4d3e69c2e2-dirty",
-        "dirtyShortRev": "bd859ef-dirty",
-        "lastModified": 1696609182,
-        "narHash": "sha256-WqMkGq0USNYxyF+Xyvn1Zp4jPO5oifOACU1qyuzQ2LI=",
-        "type": "git",
-        "url": "file:///home/user/projects/devenv"
+        "lastModified": 1699016093,
+        "narHash": "sha256-+VSnf6u6Y84wECePzd4JPgbZ56c/lVIaMzJWQEMee9k=",
+        "owner": "BurNiinTRee",
+        "repo": "devenv",
+        "rev": "f7b1051b1f406c55ba09aa31dfa7e39b7a8113e6",
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "file:///home/user/projects/devenv"
+        "owner": "BurNiinTRee",
+        "ref": "inputsFrom",
+        "repo": "devenv",
+        "type": "github"
       }
     },
     "flake-compat": {
