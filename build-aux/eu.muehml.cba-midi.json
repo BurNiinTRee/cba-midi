@@ -32,8 +32,8 @@
       "buildsystem": "meson",
       "sources": [
         {
-          "type": "archive",
-          "path": "../build/meson-dist/cba-midi-0.1.0.tar.xz"
+          "type": "dir",
+          "path": "../"
         }
       ]
     }

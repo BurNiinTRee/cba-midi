@@ -6,6 +6,57 @@ on:
 
 jobs:
 
+  make-dist:
+    name: Create a dist tarball
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: meson dist
+        run: nix develop --impure --command bash -c "meson setup build; meson dist -C build --no-test"
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: build/meson-dist/cba-midi-0.1.0.tar.xz
+      
+
+  build-flatpak:
+    name: build-flatpak
+    runs-on: ubuntu-latest
+
+    needs: make-dist
+
+    steps:
+      - name: install flatpak
+        run: |
+          sudo apt-get install flatpak flatpak-builder
+      - name: setup flathub
+        run: |
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          # flatpak install --assumeyes --user flathub org.gnome.Platform//44 org.gnome.Sdk//44 org.freedesktop.Sdk.Extension.rust-stable//22.08
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist
+      - name: unpack dist tarball
+        run: |
+          tar xvf cba-midi-0.1.0.tar.xz
+      - name: build flatpak
+        run: |
+          flatpak-builder --user --install-deps-from=flathub --repo=repo build cba-midi-0.1.0/build-aux/eu.muehml.cba-midi.json
+      - name: bundle flatpak
+        run: |
+          flatpak build-bundle ./repo cba-midi.flatpak eu.muehml.cba-midi --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: flatpak
+          path: cba-midi.flatpak
+      
+
   build-linux:
     name: build-linux
     runs-on: ubuntu-latest
