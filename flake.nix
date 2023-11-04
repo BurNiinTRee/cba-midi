@@ -29,28 +29,32 @@
         packages = {
           default = pkgs.callPackage ./nix/package.nix {};
         };
-        devenv.shells.default = let config'  = config; in {config, ...}: {
-          containers = lib.mkForce {};
-          inputsFrom = [config'.packages.default];
-          packages = [
-            pkgs.flatpak-builder
-            pkgs.rust-analyzer
-            pkgs.rustfmt
-            pkgs.python3
-          ];
-          env.GI_TYPELIB_PATH = "${config.env.DEVENV_PROFILE}/lib/girepository-1.0";
-          env.LD_LIBRARY_PATH = lib.makeLibraryPath (with pkgs; [
-            cairo
-            gdk-pixbuf
-            glib
-            graphene
-            gtk4
-            harfbuzz
-            pango
-            pipewire.jack
-            libadwaita
-          ]);
-        };
+        devenv.shells.default = let
+          config' = config;
+        in
+          {config, ...}: {
+            containers = lib.mkForce {};
+            inputsFrom = [config'.packages.default];
+            packages = [
+              pkgs.flatpak-builder
+              pkgs.rust-analyzer
+              pkgs.rustfmt
+              pkgs.python3
+            ];
+            env = {inherit (config'.packages.default) CARGO_TARGET_X86_64_LINUX_RUSTFLAGS;};
+            env.GI_TYPELIB_PATH = "${config.env.DEVENV_PROFILE}/lib/girepository-1.0";
+            env.LD_LIBRARY_PATH = lib.makeLibraryPath (with pkgs; [
+              cairo
+              gdk-pixbuf
+              glib
+              graphene
+              gtk4
+              harfbuzz
+              pango
+              pipewire.jack
+              libadwaita
+            ]);
+          };
       };
     });
 }

@@ -40,6 +40,7 @@ stdenv.mkDerivation (final: {
   cargoDeps = rustPlatform.importCargoLock {
     lockFile = ../Cargo.lock;
   };
+  CARGO_TARGET_X86_64_LINUX_RUSTFLAGS = ["-C" "link-arg=-fuse-ld=mold"];
   nativeBuildInputs = [
     autoPatchelfHook
     blueprint-compiler
