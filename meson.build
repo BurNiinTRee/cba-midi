@@ -20,6 +20,9 @@ cargo = find_program('cargo', required: true)
 desktop_file_validate = find_program('desktop-file-validate', required: false)
 
 prefix = get_option('prefix')
+if get_option('portable')
+  prefix = '/'
+endif
 bindir = prefix / get_option('bindir')
 datadir = prefix / get_option('datadir')
 pkgdatadir = datadir / meson.project_name()

@@ -4,14 +4,14 @@ use std::{
     fmt,
     fs::File,
     io::{BufRead, BufReader},
-    path::{Path, PathBuf},
+    path::Path,
     rc::Rc,
 };
 
 use adw::{gio, glib, gtk, prelude::*, Application, ApplicationWindow, ComboRow};
 use gio::SimpleAction;
 use glib::{clone, Propagation};
-use gtk::{ffi::GTK_INVALID_LIST_POSITION, gdk::Key, Builder, DropDown, StringList, Window};
+use gtk::{ffi::GTK_INVALID_LIST_POSITION, gdk::Key, Builder, StringList, Window};
 use gtk::{EventControllerFocus, EventControllerKey};
 use midir::{MidiOutput, MidiOutputConnection};
 use midly::{
@@ -84,23 +84,9 @@ fn build_ui(state: Rc<State>, app: &Application) {
 }
 
 fn main() -> glib::ExitCode {
-    #[cfg(not(windows))]
-    let res = gio::Resource::load(config::RESOURCE_FILE).expect("Couldn't load resource file");
-    #[cfg(windows)]
-    let res = {
-        let mut path = std::env::current_exe().expect("Couldn't locate cba-midi.exe");
-        path.pop();
-        path.push("cba-midi-resources.gresource");
-        gio::Resource::load(path).expect("Couldn't load resource file")
-    };
+    let res = gio::Resource::load(config::resource_file()).expect("Couldn't load resource file");
     gio::resources_register(&res);
-    #[cfg(not(windows))]
-    let mut map_path = PathBuf::from(config::PKGDATADIR);
-    #[cfg(windows)]
-    let mut map_path = std::env::current_exe().expect("Couldn't locate cba-midi.exe");
-    #[cfg(windows)]
-    map_path.pop();
-
+    let mut map_path = config::pkg_data_dir().into_owned();
     map_path.push("map.txt");
     dbg!(&map_path);
     let state = Rc::new(State::new(map_path).expect("Couldn't initialise State"));

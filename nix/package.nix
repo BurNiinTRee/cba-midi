@@ -33,7 +33,9 @@ stdenv.mkDerivation (final: {
       ../src
       ../data
       ../meson.build
+      ../meson_options.txt
       ../build-aux/dist-vendor.py
+      ../build-aux/launcher.rs
       ../build-aux/cargo-build.py
     ];
   };
