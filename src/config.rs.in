@@ -13,8 +13,12 @@ pub fn pkg_data_dir() -> Cow<'static, Path> {
         let mut path = std::env::current_exe().expect("Couldn't locate cba-midi.exe");
         path.pop();
         path.pop();
-        path.push("share");
-        path.push("cba-midi");
+        {
+            // Windows builds are made using msys2; always use forward slashes to avoid confusion
+            let path = path.as_mut_os_string();
+            path.push("/share");
+            path.push("/cba-midi");
+        }
         path.into()
     } else {
         (Path::new(PKGDATADIR)).into()
@@ -23,6 +27,7 @@ pub fn pkg_data_dir() -> Cow<'static, Path> {
 
 pub fn resource_file() -> PathBuf {
     let mut path: PathBuf = pkg_data_dir().into_owned();
-    path.push("cba-midi-resources.gresource");
+    // Windows builds are made using msys2; always use forward slashes to avoid confusion
+    path.as_mut_os_string().push("/cba-midi-resources.gresource");
     path
 }
