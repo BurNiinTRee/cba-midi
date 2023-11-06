@@ -85,6 +85,7 @@ jobs:
   build-windows:
     name: build-windows
     runs-on: windows-latest
+    needs: make-dist
     defaults:
       run:
         shell: msys2 {0}
@@ -95,30 +96,47 @@ jobs:
           release: false
           update: true
           msystem: ucrt64
-          pacboy: >-
-            python:p
-            meson:p
-            ninja:p
-            pkg-config:p
-            rust:p
-            blueprint-compiler:p
-            libadwaita:p
-            gtk4:p
+          install: >-
+            base-devel
+            zip
 
-      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist
 
-      - name: Build CBA-midi
+      - name: get PKGBUILD
         run: |
-          meson setup builddir -Dportable=true --strip --buildtype=release
-          meson compile -C builddir
-          meson install -C builddir --destdir=release
+          tar -f cba-midi-0.1.0.tar.xz -x cba-midi-0.1.0/build-aux/PKGBUILD
+          mv cba-midi-0.1.0/build-aux/PKGBUILD PKGBUILD
+          rm -r cba-midi-0.1.0
+      - name: Build msys2 package
+        run: |
+          makepkg-mingw --cleanbuild --syncdeps --force --noconfirm
 
-      - name: Assemble dependencies
-        run: ./build-aux/msys2-deploy.sh builddir/release/bin/cba-midi.exe builddir/release/
+      - name: Upload msys2 package
+        uses: actions/upload-artifact@v3
+        with:
+          name: msys2-package
+          path: mingw-w64-ucrt-x86_64-cba-midi-0.1.0-1-any.pkg.tar.zst
 
+      - name: make dir
+        run: |
+          mkdir -p chroot
+          mkdir -p chroot/var/lib/pacman
+          mkdir -p chroot/var/log
+          pacman -Syu --root chroot
+          pacman -S bash coreutils filesystem msys2-runtime --noconfirm --root chroot
+          pacman -U mingw-w64-ucrt-x86_64-cba-midi-0.1.0-1-any.pkg.tar.zst --noconfirm --root chroot
+
+      - name: create zip
+        run: |
+          dir=$PWD
+          pushd chroot/ucrt64
+          zip $dir/cba-midi-0.1.0-win64.zip -r launcher.exe bin/cba-midi.exe bin/**.dll share
+          popd
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: windows-build
-          path: builddir/release/
+          path: cba-midi-0.1.0-win64.zip
       
