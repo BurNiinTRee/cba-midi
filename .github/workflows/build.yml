@@ -67,7 +67,7 @@ jobs:
       - run: |
           sudo dnf update -y
           sudo dnf install -y gcc cargo meson ninja-build blueprint-compiler pkg-config alsa-lib-devel jack-audio-connection-kit-devel libadwaita-devel
-      - run: meson setup build --prefix $PWD/install
+      - run: meson setup build -Drelocatable=true --strip --buildtype=release --prefix $PWD/install
       - run: meson install -C build
       - uses: actions/upload-artifact@v3
         with:
