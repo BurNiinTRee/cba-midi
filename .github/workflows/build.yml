@@ -96,9 +96,16 @@ jobs:
           release: false
           update: true
           msystem: ucrt64
-          install: >-
+          pacboy: >-
             base-devel
             zip
+            meson:p
+            ninja:p
+            pkg-config:p
+            cc:p
+            blueprint-compiler:p
+            rust:p
+            libadwaita:p
 
       - uses: actions/download-artifact@v3
         with:
@@ -111,7 +118,7 @@ jobs:
           rm -r cba-midi-0.1.0
       - name: Build msys2 package
         run: |
-          makepkg-mingw --cleanbuild --syncdeps --force --noconfirm
+          makepkg-mingw --cleanbuild --force --noconfirm --install
 
       - name: Upload msys2 package
         uses: actions/upload-artifact@v3
@@ -119,19 +126,10 @@ jobs:
           name: msys2-package
           path: mingw-w64-ucrt-x86_64-cba-midi-0.1.0-1-any.pkg.tar.zst
 
-      - name: make dir
-        run: |
-          mkdir -p chroot
-          mkdir -p chroot/var/lib/pacman
-          mkdir -p chroot/var/log
-          pacman -Syu --root chroot
-          pacman -S bash coreutils filesystem msys2-runtime --noconfirm --root chroot
-          pacman -U mingw-w64-ucrt-x86_64-cba-midi-0.1.0-1-any.pkg.tar.zst --noconfirm --root chroot
-
       - name: create zip
         run: |
           zipfile=$PWD/cba-midi-0.1.0-win64.zip
-          pushd chroot/ucrt64
+          pushd /ucrt64
           pixbuf=lib/gdk-pixbuf-2.0/2.10.0
           svgloader="${pixbuf}/loaders/libpixbufloader-svg.dll"
           requireddlls="$(cat <(ldd bin/cba-midi.exe) <(ldd ${svgloader}) | grep ucrt64 | awk '{ print "bin/" $1}' | sort | uniq)"
