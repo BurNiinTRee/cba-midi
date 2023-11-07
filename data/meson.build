@@ -17,7 +17,7 @@ desktop_file = install_data(
 )
 
 app_icon = install_data(
-  'icons' / '@0@.svg'.format(base_id),
+  'icons' / 'scalable' / 'apps' / '@0@.svg'.format(base_id),
   install_dir: datadir / 'icons' / 'hicolor' / 'scalable' / 'apps'
 )
 

@@ -2,16 +2,8 @@
 <gresources>
   <gresource prefix="/eu/muehml/cba-midi/">
     <file alias="window.blp">ui/window.ui</file>
-  </gresource>
-
-  <gresource prefix="/eu/muehml/cba-midi/icons/scalable/apps/">
-    <file alias="app-icon.svg" preprocess="xml-stripblanks">icons/eu.muehml.cba-midi.svg</file>
-  </gresource>
-
-  <gresource prefix="/eu/muehml/cba-midi/icons/scalable/actions/">
-    <file alias="soundcard-symbolic.svg" preprocess="xml-stripblanks">icons/soundcard-symbolic.svg</file>
-  </gresource>
-  <gresource prefix="/eu/muehml/cba-midi/icons/scalable/actions/">
-    <file alias="help-about-symbolic.svg" preprocess="xml-stripblanks">icons/help-about-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/apps/eu.muehml.cba-midi.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/soundcard-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/help-about-symbolic.svg</file>
   </gresource>
 </gresources>
