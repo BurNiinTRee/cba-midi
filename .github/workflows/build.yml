@@ -130,9 +130,12 @@ jobs:
 
       - name: create zip
         run: |
-          dir=$PWD
+          zipfile=$PWD/cba-midi-0.1.0-win64.zip
           pushd chroot/ucrt64
-          zip $dir/cba-midi-0.1.0-win64.zip -r launcher.exe bin/cba-midi.exe bin/**.dll share
+          pixbuf=lib/gdk-pixbuf-2.0/2.10.0
+          svgloader="${pixbuf}/loaders/libpixbufloader-svg.dll"
+          requireddlls="$(cat <(ldd bin/cba-midi.exe) <(ldd ${svgloader}) | grep ucrt64 | awk '{ print "bin/" $1}' | sort | uniq)"
+          zip $zipfile -r launcher.exe bin/cba-midi.exe share/cba-midi ${requireddlls} ${svgloader} ${pixbuf}/loaders.cache
           popd
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
