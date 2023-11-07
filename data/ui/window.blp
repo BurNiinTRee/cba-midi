@@ -16,6 +16,7 @@ Adw.ApplicationWindow window {
         }
       }
       ListBox {
+        selection-mode: none;
         Adw.ComboRow octave_switcher {
           title: "Octave";
           selected: 4;
@@ -70,6 +71,7 @@ Adw.Window connect_window {
     orientation: vertical;
     Adw.HeaderBar {}
     ListBox {
+      selection-mode: none;
       Adw.ComboRow output_dropdown {
         title: "Output";
       }
