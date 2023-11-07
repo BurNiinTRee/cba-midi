@@ -1,1 +1,1 @@
-option('portable', type : 'boolean', value : false)
+option('relocatable', type : 'boolean', value : false)

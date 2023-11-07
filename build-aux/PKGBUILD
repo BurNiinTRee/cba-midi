@@ -29,7 +29,7 @@ build() {
       --auto-features=enabled \
       --buildtype=plain \
       --strip \
-      -Dportable=true \
+      -Drelocatable=true \
       ../${_realname}-${pkgver}
 
   meson compile

@@ -1,6 +1,6 @@
 pub const APP_ID: &str = @APP_ID@;
 const PKGDATADIR: &str = @PKGDATADIR@;
-const PORTABLE: bool = @PORTABLE@;
+const RELOCATABLE: bool = @RELOCATABLE@;
 
 
 use std::{
@@ -9,7 +9,7 @@ use std::{
 };
 
 pub fn pkg_data_dir() -> Cow<'static, Path> {
-    if PORTABLE {
+    if RELOCATABLE {
         let mut path = std::env::current_exe().expect("Couldn't locate cba-midi.exe");
         path.pop();
         path.pop();

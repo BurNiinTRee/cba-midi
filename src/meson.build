@@ -5,7 +5,7 @@ global_conf = configuration_data()
 global_conf.set_quoted('PKGDATADIR', pkgdatadir)
 global_conf.set_quoted('APP_ID', application_id)
 # without .to_string() booleans will be capitalized
-global_conf.set('PORTABLE', get_option('portable').to_string())
+global_conf.set('RELOCATABLE', get_option('relocatable').to_string())
 
 config = configure_file(
   input: 'config.rs.in',
@@ -55,6 +55,6 @@ cargo_build = custom_target(
 launcher = executable(
   'launcher',
   meson.project_source_root() / 'build-aux' / 'launcher.rs',
-  install: get_option('portable'),
+  install: get_option('relocatable'),
   install_dir: prefix
 )
