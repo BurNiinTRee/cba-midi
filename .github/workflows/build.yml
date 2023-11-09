@@ -96,16 +96,16 @@ jobs:
           release: false
           update: true
           msystem: ucrt64
-          pacboy: >-
+          install: >-
             base-devel
             zip
-            meson:p
-            ninja:p
-            pkg-config:p
-            cc:p
-            blueprint-compiler:p
-            rust:p
-            libadwaita:p
+            mingw-w64-ucrt-x86_64-meson
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-pkg-config
+            mingw-w64-ucrt-x86_64-cc
+            mingw-w64-ucrt-x86_64-blueprint-compiler
+            mingw-w64-ucrt-x86_64-rust
+            mingw-w64-ucrt-x86_64-libadwaita
 
       - uses: actions/download-artifact@v3
         with:
