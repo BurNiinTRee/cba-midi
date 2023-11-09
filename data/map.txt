@@ -1,37 +1,38 @@
-Shift_L 1
-Escape
-q
-backslash 2
-a
-w
-z 3
-s
-e
-x 4
-d
-r
-c 5
-f
-t
-v 6
-g
-y
-b 7
-h
-u
-n 8
-j
-i
-m 9
-k
-o
-comma 0
-l
-p
-period minus
-semicolon
-bracketleft
-slash equal
-apostrophe
-bracketright
-Shift_R BackSpace
+50 10
+66
+24
+94 11
+38
+25
+52 12
+39
+26
+53 13
+40
+27
+54 14
+41
+28
+55 15
+42
+29
+56 16
+43
+30
+57 17
+44
+31
+58 18
+45
+32
+59 19
+46
+33
+60 20
+47
+34
+61 21
+48
+35
+62 22
+51
