@@ -4,6 +4,7 @@ use std::{
     fmt,
     fs::File,
     io::{BufRead, BufReader},
+    num::ParseIntError,
     path::Path,
     rc::Rc,
 };
@@ -46,13 +47,12 @@ fn build_ui(state: Rc<State>, app: &Application) {
     }));
 
     keyboard_listener.connect_key_pressed(
-        clone!(@strong state => move |_controller, key, _keycode, _modifiers| {
+        clone!(@strong state => move |_controller, key, keycode, _modifiers| {
             if key == Key::space {
                 state.borrow_mut().midi_panic();
                 return Propagation::Stop
             }
-            let key = key.to_lower();
-            if state.borrow_mut().press_key(key.name().unwrap().as_str()) {
+            if state.borrow_mut().press_key(keycode) {
                 Propagation::Stop
             } else {
                 Propagation::Proceed
@@ -60,9 +60,8 @@ fn build_ui(state: Rc<State>, app: &Application) {
         }),
     );
     keyboard_listener.connect_key_released(
-        clone!(@strong state => move |_controller, key, _keycode, _modifiers| {
-            let key = key.to_lower();
-            state.borrow_mut().release_key(key.name().unwrap().as_str());
+        clone!(@strong state => move |_controller, _key, keycode, _modifiers| {
+            state.borrow_mut().release_key(keycode);
         }),
     );
 
@@ -179,9 +178,9 @@ impl State {
 struct StateInner {
     midi_port: Option<MidiOutputConnection>,
     octave: u8,
-    held_keys: HashSet<Key>,
+    held_keys: HashSet<u32>,
     held_notes: HashMap<Note, usize>,
-    key_to_note: HashMap<Key, Note>,
+    key_to_note: HashMap<u32, Note>,
 }
 
 impl StateInner {
@@ -199,16 +198,14 @@ impl StateInner {
 
     fn read_map_file<P: AsRef<Path>>(
         map_file_path: P,
-    ) -> Result<HashMap<Key, Note>, Box<dyn std::error::Error>> {
+    ) -> Result<HashMap<u32, Note>, Box<dyn std::error::Error>> {
         let file = BufReader::new(File::open(map_file_path)?);
         let mut key_to_note = HashMap::new();
         for (i, line) in file.lines().enumerate() {
             let line = line?;
             let note = Note::new(i as u8);
-            let keys: Result<HashSet<Key>, KeyParseError> = line
-                .split_whitespace()
-                .map(|name| Key::from_name(name).ok_or_else(|| KeyParseError(name.to_string())))
-                .collect();
+            let keys: Result<HashSet<u32>, ParseIntError> =
+                line.split_whitespace().map(|name| name.parse()).collect();
             let keys = keys?;
 
             for key in &keys {
@@ -218,10 +215,10 @@ impl StateInner {
         Ok(key_to_note)
     }
 
-    fn press_key(&mut self, key_name: &str) -> bool {
-        let key = Key::from_name(key_name).unwrap();
+    fn press_key(&mut self, keycode: u32) -> bool {
+        let key = keycode;
         let Some(&note) = self.key_to_note.get(&key) else {
-            println!("Unmapped Key: {}", key_name);
+            println!("Unmapped Key: {}", keycode);
             return false;
         };
         let note = note + u7::new(self.octave * 12);
@@ -236,8 +233,8 @@ impl StateInner {
         }
         true
     }
-    fn release_key(&mut self, key_name: &str) {
-        let key = Key::from_name(key_name).unwrap();
+    fn release_key(&mut self, keycode: u32) {
+        let key = keycode;
         if !self.held_keys.remove(&key) {
             return;
         }
